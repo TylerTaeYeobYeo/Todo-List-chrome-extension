@@ -2,4 +2,31 @@ body {
   width: 200px;
   height: 100px;
   text-align: center;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+
+  /* Light Theme Defaults */
+  background-color: white;
+  color: #333;
+}
+
+button {
+  padding: 8px 16px;
+  border-radius: 6px;
+  border: none;
+  background: #6e8efb;
+  color: white;
+  cursor: pointer;
+  font-weight: 500;
+  margin-top: 10px;
+}
+
+button:hover {
+  background: #5b7add;
+}
+
+@media (prefers-color-scheme: dark) {
+  body {
+    background-color: #1f1f1f;
+    color: #e0e0e0;
+  }
 }

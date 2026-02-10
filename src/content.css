@@ -1,8 +1,41 @@
+/* Shared Theme Scope */
+.bun-scope {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+
+    /* Light Theme Variables */
+    --bun-bg: white;
+    --bun-text: #333;
+    --bun-text-secondary: #666;
+    --bun-border: #eee;
+    --bun-hover: #f0f2f5;
+    --bun-shadow: rgba(0, 0, 0, 0.15);
+    --bun-accent: #6e8efb;
+    --bun-danger: #ff4d4f;
+    --bun-danger-bg: #fff1f0;
+    --bun-input-bg: white;
+    --bun-input-border: #ddd;
+}
+
 /* Bubble Container */
 #bun-bubble-container {
     position: fixed;
     z-index: 999999;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+@media (prefers-color-scheme: dark) {
+    .bun-scope {
+        --bun-bg: #1f1f1f;
+        --bun-text: #e0e0e0;
+        --bun-text-secondary: #aaaaaa;
+        --bun-border: #333;
+        --bun-hover: #333;
+        --bun-shadow: rgba(0, 0, 0, 0.5);
+        --bun-accent: #6e8efb;
+        --bun-danger: #ff4d4f;
+        --bun-danger-bg: #3a1c1c;
+        --bun-input-bg: #2d2d2d;
+        --bun-input-border: #444;
+    }
 }
 
 /* Floating Bubble */
@@ -11,7 +44,7 @@
     height: 60px;
     background: linear-gradient(135deg, #6e8efb, #a777e3);
     border-radius: 50%;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 4px 15px var(--bun-shadow);
     cursor: grab;
     display: flex;
     align-items: center;
@@ -36,17 +69,16 @@
 .bun-menu {
     position: absolute;
     bottom: 70px;
-    /* Above the bubble */
     right: 0;
     width: 250px;
-    background: white;
+    background: var(--bun-bg);
     border-radius: 12px;
-    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 5px 20px var(--bun-shadow);
     display: none;
-    /* Hidden by default */
     flex-direction: column;
     overflow: hidden;
     animation: bun-fade-in 0.2s ease-out;
+    border: 1px solid var(--bun-border);
 }
 
 .bun-menu.visible {
@@ -55,10 +87,10 @@
 
 .bun-menu-header {
     padding: 12px 16px;
-    background: #f8f9fa;
-    border-bottom: 1px solid #eee;
+    background: var(--bun-hover);
+    border-bottom: 1px solid var(--bun-border);
     font-weight: 600;
-    color: #333;
+    color: var(--bun-text);
 }
 
 .bun-todo-list {
@@ -74,7 +106,7 @@
     align-items: center;
     justify-content: space-between;
     padding: 10px 16px;
-    border-bottom: 1px solid #f0f0f0;
+    border-bottom: 1px solid var(--bun-border);
     font-size: 14px;
 }
 
@@ -85,13 +117,13 @@
 .bun-todo-text {
     flex: 1;
     margin-right: 10px;
-    color: #444;
+    color: var(--bun-text);
 }
 
 .bun-delete-btn {
     background: none;
     border: none;
-    color: #999;
+    color: var(--bun-text-secondary);
     cursor: pointer;
     padding: 4px;
     border-radius: 4px;
@@ -99,8 +131,8 @@
 }
 
 .bun-delete-btn:hover {
-    color: #ff4d4f;
-    background: #fff1f0;
+    color: var(--bun-danger);
+    background: var(--bun-danger-bg);
 }
 
 .bun-add-btn {
@@ -108,18 +140,18 @@
     align-items: center;
     justify-content: center;
     padding: 12px;
-    background: #f0f2f5;
+    background: var(--bun-hover);
     border: none;
-    border-top: 1px solid #eee;
+    border-top: 1px solid var(--bun-border);
     cursor: pointer;
     font-weight: 500;
-    color: #666;
+    color: var(--bun-text-secondary);
     transition: background 0.2s;
 }
 
 .bun-add-btn:hover {
-    background: #e4e6eb;
-    color: #333;
+    background: var(--bun-border);
+    color: var(--bun-text);
 }
 
 /* Dialog Overlay */
@@ -143,11 +175,11 @@
 
 /* Dialog Box */
 .bun-dialog {
-    background: white;
+    background: var(--bun-bg);
     padding: 24px;
     border-radius: 12px;
     width: 320px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
     transform: scale(0.9);
     transition: transform 0.2s;
 }
@@ -158,22 +190,23 @@
 
 .bun-dialog h3 {
     margin: 0 0 16px 0;
-    color: #333;
+    color: var(--bun-text);
 }
 
 .bun-input {
     width: 100%;
     padding: 10px;
-    border: 1px solid #ddd;
+    border: 1px solid var(--bun-input-border);
+    background: var(--bun-input-bg);
+    color: var(--bun-text);
     border-radius: 6px;
     margin-bottom: 16px;
     box-sizing: border-box;
-    /* Important for padding */
     font-size: 14px;
 }
 
 .bun-input:focus {
-    border-color: #6e8efb;
+    border-color: var(--bun-accent);
     outline: none;
 }
 
@@ -193,16 +226,16 @@
 }
 
 .bun-btn-cancel {
-    background: #f0f0f0;
-    color: #666;
+    background: var(--bun-hover);
+    color: var(--bun-text-secondary);
 }
 
 .bun-btn-cancel:hover {
-    background: #e0e0e0;
+    background: var(--bun-border);
 }
 
 .bun-btn-primary {
-    background: #6e8efb;
+    background: var(--bun-accent);
     color: white;
 }
 

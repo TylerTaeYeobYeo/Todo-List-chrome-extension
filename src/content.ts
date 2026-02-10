@@ -51,6 +51,7 @@ function injectStyles() {
 function createBubble() {
     const container = document.createElement("div");
     container.id = "bun-bubble-container";
+    container.classList.add("bun-scope");
     container.style.bottom = "20px";
     container.style.right = "20px";
 
@@ -131,7 +132,7 @@ function createMenu() {
 
 function createDialog() {
     dialogOverlay = document.createElement("div");
-    dialogOverlay.className = "bun-dialog-overlay";
+    dialogOverlay.className = "bun-dialog-overlay bun-scope";
 
     const dialog = document.createElement("div");
     dialog.className = "bun-dialog";
