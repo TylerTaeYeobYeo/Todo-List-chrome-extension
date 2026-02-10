@@ -85,18 +85,21 @@ function createBubble() {
             container.style.right = "auto";
             container.style.top = `${e.clientY - dragOffset.y}px`;
             container.style.left = `${e.clientX - dragOffset.x}px`;
+
+            updateMenuPosition();
         }
     });
 
     document.addEventListener("mouseup", () => {
         isDragging = false;
         bubble.style.cursor = "grab";
+        updateMenuPosition();
     });
 }
 
 function createMenu() {
     menu = document.createElement("div");
-    menu.className = "bun-menu";
+    menu.className = "bun-menu bun-scope";
 
     const header = document.createElement("div");
     header.className = "bun-menu-header";
@@ -123,11 +126,66 @@ function createMenu() {
     menu.appendChild(todoList);
     menu.appendChild(addButton);
 
-    // Append to container so it moves with bubble
-    const container = document.getElementById("bun-bubble-container");
-    if (container) {
-        container.appendChild(menu);
+    document.body.appendChild(menu);
+}
+
+function updateMenuPosition() {
+    if (!menu.classList.contains("visible") || !bubble) return;
+
+    const bubbleRect = bubble.getBoundingClientRect();
+    const menuRect = menu.getBoundingClientRect();
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+    const gap = 12;
+
+    // Vertical Positioning
+    const spaceAbove = bubbleRect.top;
+    const spaceBelow = viewportHeight - bubbleRect.bottom;
+    const menuHeight = menuRect.height || 300; // Fallback if not yet rendered
+
+    // Prefer above if space allows, otherwise below.
+    // However, if neither fits, pick the one with MORE space.
+    let top = 0;
+
+    // Default to above
+    if (spaceAbove >= menuHeight + gap) {
+        top = bubbleRect.top - menuHeight - gap;
     }
+    // If not enough space above, try below
+    else if (spaceBelow >= menuHeight + gap) {
+        top = bubbleRect.bottom + gap;
+    }
+    // If neither fits, prefer the side with more space and clamp
+    else {
+        if (spaceAbove > spaceBelow) {
+            top = gap; // Stick to top edge
+            // potentially limit height?
+            menu.style.maxHeight = `${spaceAbove - gap * 2}px`;
+        } else {
+            top = bubbleRect.bottom + gap;
+            menu.style.maxHeight = `${spaceBelow - gap * 2}px`;
+        }
+    }
+
+    // Normalize top
+    if (top < gap) top = gap;
+    if (top + menuHeight > viewportHeight - gap) top = viewportHeight - menuHeight - gap;
+
+    menu.style.top = `${top}px`;
+    menu.style.bottom = "auto";
+
+
+    // Horizontal Positioning
+    // Align center with bubble, then clamp
+    const bubbleCenter = bubbleRect.left + bubbleRect.width / 2;
+    let left = bubbleCenter - (menuRect.width / 2);
+
+    // Clamp horizontal
+    if (left < gap) left = gap;
+    if (left + menuRect.width > viewportWidth - gap) left = viewportWidth - menuRect.width - gap;
+
+    menu.style.left = `${left}px`;
+    menu.style.right = "auto";
 }
 
 function createDialog() {
@@ -211,6 +269,10 @@ function setupListeners() {
             renderTodos();
         }
     });
+
+    window.addEventListener("resize", () => {
+        updateMenuPosition();
+    });
 }
 
 function toggleMenu(force?: boolean) {
@@ -219,6 +281,9 @@ function toggleMenu(force?: boolean) {
 
     if (shouldBeVisible) {
         menu.classList.add("visible");
+        // Reset height limits before measuring
+        menu.style.maxHeight = "";
+        updateMenuPosition();
     } else {
         menu.classList.remove("visible");
     }

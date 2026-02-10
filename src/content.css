@@ -67,9 +67,9 @@
 
 /* Menu */
 .bun-menu {
-    position: absolute;
-    bottom: 70px;
-    right: 0;
+    position: fixed;
+    z-index: 999998;
+    /* Below bubble (999999) but above content */
     width: 250px;
     background: var(--bun-bg);
     border-radius: 12px;
