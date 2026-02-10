@@ -81,10 +81,26 @@ function createBubble() {
         if (isDragging) {
             hasMoved = true;
             e.preventDefault();
+
+            const viewportWidth = window.innerWidth;
+            const viewportHeight = window.innerHeight;
+            const rect = container.getBoundingClientRect();
+
+            let newLeft = e.clientX - dragOffset.x;
+            let newTop = e.clientY - dragOffset.y;
+
+            // Clamp horizontal
+            if (newLeft < 0) newLeft = 0;
+            if (newLeft + rect.width > viewportWidth) newLeft = viewportWidth - rect.width;
+
+            // Clamp vertical
+            if (newTop < 0) newTop = 0;
+            if (newTop + rect.height > viewportHeight) newTop = viewportHeight - rect.height;
+
             container.style.bottom = "auto";
             container.style.right = "auto";
-            container.style.top = `${e.clientY - dragOffset.y}px`;
-            container.style.left = `${e.clientX - dragOffset.x}px`;
+            container.style.top = `${newTop}px`;
+            container.style.left = `${newLeft}px`;
 
             updateMenuPosition();
         }
