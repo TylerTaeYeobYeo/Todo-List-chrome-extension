@@ -1,0 +1,16 @@
+{
+  "name": "firstapp",
+  "module": "index.ts",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "build": "bun run build.ts"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "@types/chrome": "^0.1.36"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  }
+}
