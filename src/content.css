@@ -23,7 +23,7 @@
 }
 
 @media (prefers-color-scheme: dark) {
-    .bun-scope {
+    .bun-scope:not(.bun-theme-light) {
         --bun-bg: #1f1f1f;
         --bun-text: #e0e0e0;
         --bun-text-secondary: #aaaaaa;
@@ -36,6 +36,36 @@
         --bun-input-bg: #2d2d2d;
         --bun-input-border: #444;
     }
+}
+
+/* Forced Dark Theme */
+.bun-scope.bun-theme-dark {
+    --bun-bg: #1f1f1f;
+    --bun-text: #e0e0e0;
+    --bun-text-secondary: #aaaaaa;
+    --bun-border: #333;
+    --bun-hover: #333;
+    --bun-shadow: rgba(0, 0, 0, 0.5);
+    --bun-accent: #6e8efb;
+    --bun-danger: #ff4d4f;
+    --bun-danger-bg: #3a1c1c;
+    --bun-input-bg: #2d2d2d;
+    --bun-input-border: #444;
+}
+
+/* Forced Light Theme */
+.bun-scope.bun-theme-light {
+    --bun-bg: white;
+    --bun-text: #333;
+    --bun-text-secondary: #666;
+    --bun-border: #eee;
+    --bun-hover: #f0f2f5;
+    --bun-shadow: rgba(0, 0, 0, 0.15);
+    --bun-accent: #6e8efb;
+    --bun-danger: #ff4d4f;
+    --bun-danger-bg: #fff1f0;
+    --bun-input-bg: white;
+    --bun-input-border: #ddd;
 }
 
 /* Floating Bubble */

@@ -20,9 +20,11 @@ let todoList: HTMLUListElement;
 
 // Constants
 const STORAGE_KEY = "bun_todos";
+const STORAGE_THEME_KEY = "bun_theme";
 
 async function init() {
     injectStyles();
+    await applySavedTheme();
     createBubble();
     createMenu();
     createDialog();
@@ -52,6 +54,10 @@ function createBubble() {
     const container = document.createElement("div");
     container.id = "bun-bubble-container";
     container.classList.add("bun-scope");
+    // Apply current theme state immediately?
+    // Easier: just re-apply based on current storage or keep state in a variable.
+    // But since applySavedTheme is async, we might want to just let the listener handle it or re-read.
+    // Optimization: Store current theme in a variable.
     container.style.bottom = "20px";
     container.style.right = "20px";
 
@@ -280,14 +286,37 @@ function setupListeners() {
 
     // Listen for storage changes from other tabs
     chrome.storage.onChanged.addListener((changes, area) => {
-        if (area === "sync" && changes[STORAGE_KEY]) {
-            todos = (changes[STORAGE_KEY].newValue as Todo[]) || [];
-            renderTodos();
+        if (area === "sync") {
+            if (changes[STORAGE_KEY]) {
+                todos = (changes[STORAGE_KEY].newValue as Todo[]) || [];
+                renderTodos();
+            }
+            if (changes[STORAGE_THEME_KEY]) {
+                applyThemeToScope((changes[STORAGE_THEME_KEY].newValue as string) || "system");
+            }
         }
     });
 
     window.addEventListener("resize", () => {
         updateMenuPosition();
+    });
+}
+
+async function applySavedTheme() {
+    const result = await chrome.storage.sync.get([STORAGE_THEME_KEY]);
+    const theme = (result[STORAGE_THEME_KEY] as string) || "system";
+    applyThemeToScope(theme);
+}
+
+function applyThemeToScope(theme: string) {
+    // We need to apply this to all existing scopes.
+    // Currently we have bubble container and dialog overlay.
+    // We can query them by class .bun-scope
+    const scopes = document.querySelectorAll(".bun-scope");
+    scopes.forEach(el => {
+        el.classList.remove("bun-theme-light", "bun-theme-dark");
+        if (theme === "light") el.classList.add("bun-theme-light");
+        if (theme === "dark") el.classList.add("bun-theme-dark");
     });
 }
 
