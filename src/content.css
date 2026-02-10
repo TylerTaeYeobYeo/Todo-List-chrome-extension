@@ -1,0 +1,221 @@
+/* Bubble Container */
+#bun-bubble-container {
+    position: fixed;
+    z-index: 999999;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Floating Bubble */
+.bun-bubble {
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, #6e8efb, #a777e3);
+    border-radius: 50%;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    cursor: grab;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s;
+    user-select: none;
+}
+
+.bun-bubble:active {
+    cursor: grabbing;
+    transform: scale(0.95);
+}
+
+.bun-bubble-icon {
+    width: 30px;
+    height: 30px;
+    fill: white;
+    pointer-events: none;
+}
+
+/* Menu */
+.bun-menu {
+    position: absolute;
+    bottom: 70px;
+    /* Above the bubble */
+    right: 0;
+    width: 250px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15);
+    display: none;
+    /* Hidden by default */
+    flex-direction: column;
+    overflow: hidden;
+    animation: bun-fade-in 0.2s ease-out;
+}
+
+.bun-menu.visible {
+    display: flex;
+}
+
+.bun-menu-header {
+    padding: 12px 16px;
+    background: #f8f9fa;
+    border-bottom: 1px solid #eee;
+    font-weight: 600;
+    color: #333;
+}
+
+.bun-todo-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.bun-todo-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 16px;
+    border-bottom: 1px solid #f0f0f0;
+    font-size: 14px;
+}
+
+.bun-todo-item:last-child {
+    border-bottom: none;
+}
+
+.bun-todo-text {
+    flex: 1;
+    margin-right: 10px;
+    color: #444;
+}
+
+.bun-delete-btn {
+    background: none;
+    border: none;
+    color: #999;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    transition: color 0.2s, background 0.2s;
+}
+
+.bun-delete-btn:hover {
+    color: #ff4d4f;
+    background: #fff1f0;
+}
+
+.bun-add-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px;
+    background: #f0f2f5;
+    border: none;
+    border-top: 1px solid #eee;
+    cursor: pointer;
+    font-weight: 500;
+    color: #666;
+    transition: background 0.2s;
+}
+
+.bun-add-btn:hover {
+    background: #e4e6eb;
+    color: #333;
+}
+
+/* Dialog Overlay */
+.bun-dialog-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1000000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    animation: bun-fade-in 0.2s;
+}
+
+.bun-dialog-overlay.visible {
+    display: flex;
+}
+
+/* Dialog Box */
+.bun-dialog {
+    background: white;
+    padding: 24px;
+    border-radius: 12px;
+    width: 320px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    transform: scale(0.9);
+    transition: transform 0.2s;
+}
+
+.bun-dialog-overlay.visible .bun-dialog {
+    transform: scale(1);
+}
+
+.bun-dialog h3 {
+    margin: 0 0 16px 0;
+    color: #333;
+}
+
+.bun-input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    margin-bottom: 16px;
+    box-sizing: border-box;
+    /* Important for padding */
+    font-size: 14px;
+}
+
+.bun-input:focus {
+    border-color: #6e8efb;
+    outline: none;
+}
+
+.bun-dialog-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+.bun-btn {
+    padding: 8px 16px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.bun-btn-cancel {
+    background: #f0f0f0;
+    color: #666;
+}
+
+.bun-btn-cancel:hover {
+    background: #e0e0e0;
+}
+
+.bun-btn-primary {
+    background: #6e8efb;
+    color: white;
+}
+
+.bun-btn-primary:hover {
+    background: #5b7add;
+}
+
+@keyframes bun-fade-in {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}

@@ -33,6 +33,13 @@ console.log("Copying static files...");
 await copyFile("manifest.json", join(distDir, "manifest.json"));
 await copyFile("src/popup/popup.html", join(distDir, "popup", "popup.html"));
 await copyFile("src/popup/popup.css", join(distDir, "popup", "popup.css"));
-// TODO: copy icons when they exist
+await copyFile("src/content.css", join(distDir, "content.css"));
+
+// Copy icons
+const iconsDir = join(distDir, "icons");
+await mkdir(iconsDir, { recursive: true });
+await copyFile("icons/icon16.png", join(iconsDir, "icon16.png"));
+await copyFile("icons/icon48.png", join(iconsDir, "icon48.png"));
+await copyFile("icons/icon128.png", join(iconsDir, "icon128.png"));
 
 console.log("Extension ready in ./dist");
