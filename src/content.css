@@ -14,12 +14,19 @@
     --tytd-danger-bg: #fff1f0;
     --tytd-input-bg: white;
     --tytd-input-border: #ddd;
+    --tytd-success: #52c41a;
+    --tytd-success-bg: #f6ffed;
 }
 
 /* Bubble Container */
 #tytd-bubble-container {
     position: fixed;
     z-index: 999999;
+}
+
+#tytd-bubble-container.tytd-pinning {
+    transition: top 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28),
+        left 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -35,6 +42,8 @@
         --tytd-danger-bg: #3a1c1c;
         --tytd-input-bg: #2d2d2d;
         --tytd-input-border: #444;
+        --tytd-success: #73d13d;
+        --tytd-success-bg: #1d3712;
     }
 }
 
@@ -51,6 +60,8 @@
     --tytd-danger-bg: #3a1c1c;
     --tytd-input-bg: #2d2d2d;
     --tytd-input-border: #444;
+    --tytd-success: #73d13d;
+    --tytd-success-bg: #1d3712;
 }
 
 /* Forced Light Theme */
@@ -66,6 +77,8 @@
     --tytd-danger-bg: #fff1f0;
     --tytd-input-bg: white;
     --tytd-input-border: #ddd;
+    --tytd-success: #52c41a;
+    --tytd-success-bg: #f6ffed;
 }
 
 /* Floating Bubble */
@@ -97,9 +110,9 @@
 
 /* Menu */
 .tytd-menu {
-    position: fixed;
-    z-index: 999998;
-    /* Below bubble (999999) but above content */
+    position: absolute;
+    z-index: -1;
+    /* Behind bubble but inside container */
     width: 250px;
     background: var(--tytd-bg);
     border-radius: 12px;
@@ -110,6 +123,8 @@
     animation: tytd-fade-in 0.2s ease-out;
     border: 1px solid var(--tytd-border);
 }
+
+
 
 .tytd-menu.visible {
     display: flex;
@@ -150,7 +165,8 @@
     color: var(--tytd-text);
 }
 
-.tytd-delete-btn {
+.tytd-delete-btn,
+.tytd-done-btn {
     background: none;
     border: none;
     color: var(--tytd-text-secondary);
@@ -158,11 +174,19 @@
     padding: 4px;
     border-radius: 4px;
     transition: color 0.2s, background 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .tytd-delete-btn:hover {
     color: var(--tytd-danger);
     background: var(--tytd-danger-bg);
+}
+
+.tytd-done-btn:hover {
+    color: var(--tytd-success);
+    background: var(--tytd-success-bg);
 }
 
 .tytd-add-btn {

@@ -4,6 +4,7 @@ interface Todo {
     id: string;
     text: string;
     completed: boolean;
+    completedAt?: string;
 }
 
 // State
@@ -114,9 +115,11 @@ function createBubble() {
     });
 
     document.addEventListener("mouseup", () => {
-        isDragging = false;
-        bubble.style.cursor = "grab";
-        updateMenuPosition();
+        if (isDragging) {
+            isDragging = false;
+            bubble.style.cursor = "grab";
+            pinToNearestCorner();
+        }
     });
 }
 
@@ -149,65 +152,66 @@ function createMenu() {
     menu.appendChild(todoList);
     menu.appendChild(addButton);
 
-    document.body.appendChild(menu);
+    if (bubbleContainer) {
+        bubbleContainer.appendChild(menu);
+    }
 }
 
-function updateMenuPosition() {
-    if (!menu.classList.contains("visible") || !bubble) return;
+function updateMenuPosition(targetRect?: { top: number, left: number, width: number, height: number } | DOMRect) {
+    if (!menu.classList.contains("visible") || !bubbleContainer) return;
 
-    const bubbleRect = bubble.getBoundingClientRect();
+    const containerRect = targetRect || bubbleContainer.getBoundingClientRect();
     const menuRect = menu.getBoundingClientRect();
     const viewportWidth = window.innerWidth;
     const viewportHeight = window.innerHeight;
     const gap = 12;
+    const screenPadding = 20;
 
     // Vertical Positioning
-    const spaceAbove = bubbleRect.top;
-    const spaceBelow = viewportHeight - bubbleRect.bottom;
-    const menuHeight = menuRect.height || 300; // Fallback if not yet rendered
+    const spaceAbove = containerRect.top;
+    const spaceBelow = viewportHeight - (containerRect.top + containerRect.height);
+    const menuHeight = menuRect.height || 300;
 
-    // Prefer above if space allows, otherwise below.
-    // However, if neither fits, pick the one with MORE space.
-    let top = 0;
+    let relativeTop = 0;
 
-    // Default to above
+    // Decide if above or below based on space
     if (spaceAbove >= menuHeight + gap) {
-        top = bubbleRect.top - menuHeight - gap;
-    }
-    // If not enough space above, try below
-    else if (spaceBelow >= menuHeight + gap) {
-        top = bubbleRect.bottom + gap;
-    }
-    // If neither fits, prefer the side with more space and clamp
-    else {
+        relativeTop = -menuHeight - gap;
+    } else if (spaceBelow >= menuHeight + gap) {
+        relativeTop = containerRect.height + gap;
+    } else {
+        // Fallback: use side with more space
         if (spaceAbove > spaceBelow) {
-            top = gap; // Stick to top edge
-            // potentially limit height?
+            relativeTop = -menuHeight - gap;
             menu.style.maxHeight = `${spaceAbove - gap * 2}px`;
         } else {
-            top = bubbleRect.bottom + gap;
+            relativeTop = containerRect.height + gap;
             menu.style.maxHeight = `${spaceBelow - gap * 2}px`;
         }
     }
 
-    // Normalize top
-    if (top < gap) top = gap;
-    if (top + menuHeight > viewportHeight - gap) top = viewportHeight - menuHeight - gap;
+    // Horizontal Positioning (Relative to container)
+    // Align center with container (bubble)
+    let relativeLeft = (containerRect.width / 2) - (menuRect.width / 2);
 
-    menu.style.top = `${top}px`;
+    // Global clamping check (to ensure it doesn't go off-screen)
+    const absoluteLeft = containerRect.left + relativeLeft;
+    if (absoluteLeft < screenPadding) {
+        relativeLeft = screenPadding - containerRect.left;
+    } else if (absoluteLeft + menuRect.width > viewportWidth - screenPadding) {
+        relativeLeft = (viewportWidth - screenPadding - menuRect.width) - containerRect.left;
+    }
+
+    const absoluteTop = containerRect.top + relativeTop;
+    if (absoluteTop < screenPadding) {
+        relativeTop = screenPadding - containerRect.top;
+    } else if (absoluteTop + menuRect.height > viewportHeight - screenPadding) {
+        relativeTop = (viewportHeight - screenPadding - menuRect.height) - containerRect.top;
+    }
+
+    menu.style.top = `${relativeTop}px`;
+    menu.style.left = `${relativeLeft}px`;
     menu.style.bottom = "auto";
-
-
-    // Horizontal Positioning
-    // Align center with bubble, then clamp
-    const bubbleCenter = bubbleRect.left + bubbleRect.width / 2;
-    let left = bubbleCenter - (menuRect.width / 2);
-
-    // Clamp horizontal
-    if (left < gap) left = gap;
-    if (left + menuRect.width > viewportWidth - gap) left = viewportWidth - menuRect.width - gap;
-
-    menu.style.left = `${left}px`;
     menu.style.right = "auto";
 }
 
@@ -312,38 +316,56 @@ function setupListeners() {
     });
 
     window.addEventListener("resize", () => {
-        updateBubblePosition();
+        pinToNearestCorner();
         updateMenuPosition();
     });
 }
 
-function updateBubblePosition() {
+function pinToNearestCorner() {
     if (!bubbleContainer) return;
 
     const viewportWidth = window.innerWidth;
     const viewportHeight = window.innerHeight;
     const rect = bubbleContainer.getBoundingClientRect();
-    const gap = 20;
+    const margin = 20;
 
-    // Only clamp if it was moved (top/left are set)
-    if (bubbleContainer.style.top !== "auto" || bubbleContainer.style.left !== "auto") {
-        let newTop = rect.top;
-        let newLeft = rect.left;
+    const bubbleMidX = rect.left + rect.width / 2;
+    const bubbleMidY = rect.top + rect.height / 2;
 
-        if (newLeft + rect.width > viewportWidth - gap) {
-            newLeft = viewportWidth - rect.width - gap;
-        }
-        if (newTop + rect.height > viewportHeight - gap) {
-            newTop = viewportHeight - rect.height - gap;
-        }
+    const isLeft = bubbleMidX < viewportWidth / 2;
+    const isTop = bubbleMidY < viewportHeight / 2;
 
-        // Clamp to positive space too
-        if (newLeft < gap) newLeft = gap;
-        if (newTop < gap) newTop = gap;
+    let targetLeft = isLeft ? margin : viewportWidth - rect.width - margin;
+    let targetTop = isTop ? margin : viewportHeight - rect.height - margin;
 
-        bubbleContainer.style.top = `${newTop}px`;
-        bubbleContainer.style.left = `${newLeft}px`;
-    }
+    // Apply smooth pinning
+    bubbleContainer.classList.add("tytd-pinning");
+    menu.classList.add("tytd-pinning");
+    bubbleContainer.style.top = `${targetTop}px`;
+    bubbleContainer.style.left = `${targetLeft}px`;
+    bubbleContainer.style.bottom = "auto";
+    bubbleContainer.style.right = "auto";
+
+    // Update menu position based on the NEW container target
+    // We pass the destination rect so the menu calculates its safety bounds for the corner.
+    updateMenuPosition({
+        top: targetTop,
+        left: targetLeft,
+        width: rect.width,
+        height: rect.height
+    });
+
+    // Clean up transition class after it finishes
+    setTimeout(() => {
+        bubbleContainer.classList.remove("tytd-pinning");
+        menu.classList.remove("tytd-pinning");
+    }, 300);
+}
+
+function updateBubblePosition() {
+    // Redundant now that pinning handles it on resize, 
+    // but kept as a simple safety clamp if called manually.
+    pinToNearestCorner();
 }
 
 async function applySavedTheme() {
@@ -388,7 +410,9 @@ function renderTodos() {
     if (!todoList) return;
     todoList.innerHTML = "";
 
-    if (todos.length === 0) {
+    const activeTodos = todos.filter(t => !t.completed);
+
+    if (activeTodos.length === 0) {
         const empty = document.createElement("li");
         empty.className = "tytd-todo-item";
         empty.textContent = "No tasks yet!";
@@ -398,13 +422,35 @@ function renderTodos() {
         return;
     }
 
-    todos.forEach(todo => {
+    activeTodos.forEach(todo => {
         const li = document.createElement("li");
         li.className = "tytd-todo-item";
 
         const text = document.createElement("span");
         text.className = "tytd-todo-text";
         text.textContent = todo.text;
+
+        const actionButtons = document.createElement("div");
+        actionButtons.style.display = "flex";
+        actionButtons.style.gap = "4px";
+
+        const doneBtn = document.createElement("button");
+        doneBtn.className = "tytd-done-btn";
+        doneBtn.innerHTML = `
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="20 6 9 17 4 12"></polyline>
+      </svg>
+    `;
+        doneBtn.addEventListener("click", async () => {
+            todo.completed = true;
+            todo.completedAt = new Date().toLocaleString([], {
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+            await saveTodos();
+        });
 
         const deleteBtn = document.createElement("button");
         deleteBtn.className = "tytd-delete-btn";
@@ -420,7 +466,9 @@ function renderTodos() {
         });
 
         li.appendChild(text);
-        li.appendChild(deleteBtn);
+        actionButtons.appendChild(doneBtn);
+        actionButtons.appendChild(deleteBtn);
+        li.appendChild(actionButtons);
         todoList.appendChild(li);
     });
 }
