@@ -13,6 +13,7 @@ let dragOffset = { x: 0, y: 0 };
 let hasMoved = false; // To distinguish click vs drag
 
 // DOM Elements
+let bubbleContainer: HTMLDivElement;
 let bubble: HTMLDivElement;
 let menu: HTMLDivElement;
 let dialogOverlay: HTMLDivElement;
@@ -51,15 +52,15 @@ function injectStyles() {
 }
 
 function createBubble() {
-    const container = document.createElement("div");
-    container.id = "bun-bubble-container";
-    container.classList.add("bun-scope");
+    bubbleContainer = document.createElement("div");
+    bubbleContainer.id = "bun-bubble-container";
+    bubbleContainer.classList.add("bun-scope");
     // Apply current theme state immediately?
     // Easier: just re-apply based on current storage or keep state in a variable.
     // But since applySavedTheme is async, we might want to just let the listener handle it or re-read.
     // Optimization: Store current theme in a variable.
-    container.style.bottom = "20px";
-    container.style.right = "20px";
+    bubbleContainer.style.bottom = "20px";
+    bubbleContainer.style.right = "20px";
 
     bubble = document.createElement("div");
     bubble.className = "bun-bubble";
@@ -70,14 +71,14 @@ function createBubble() {
     </svg>
   `;
 
-    container.appendChild(bubble);
-    document.body.appendChild(container);
+    bubbleContainer.appendChild(bubble);
+    document.body.appendChild(bubbleContainer);
 
     // Drag logic
     bubble.addEventListener("mousedown", (e) => {
         isDragging = true;
         hasMoved = false;
-        const rect = container.getBoundingClientRect();
+        const rect = bubbleContainer.getBoundingClientRect();
         dragOffset.x = e.clientX - rect.left;
         dragOffset.y = e.clientY - rect.top;
         bubble.style.cursor = "grabbing";
@@ -90,7 +91,7 @@ function createBubble() {
 
             const viewportWidth = window.innerWidth;
             const viewportHeight = window.innerHeight;
-            const rect = container.getBoundingClientRect();
+            const rect = bubbleContainer.getBoundingClientRect();
 
             let newLeft = e.clientX - dragOffset.x;
             let newTop = e.clientY - dragOffset.y;
@@ -103,10 +104,10 @@ function createBubble() {
             if (newTop < 0) newTop = 0;
             if (newTop + rect.height > viewportHeight) newTop = viewportHeight - rect.height;
 
-            container.style.bottom = "auto";
-            container.style.right = "auto";
-            container.style.top = `${newTop}px`;
-            container.style.left = `${newLeft}px`;
+            bubbleContainer.style.bottom = "auto";
+            bubbleContainer.style.right = "auto";
+            bubbleContainer.style.top = `${newTop}px`;
+            bubbleContainer.style.left = `${newLeft}px`;
 
             updateMenuPosition();
         }
@@ -278,9 +279,22 @@ function createDialog() {
 }
 
 function setupListeners() {
-    bubble.addEventListener("click", () => {
+    bubble.addEventListener("click", (e) => {
+        e.stopPropagation();
         if (!hasMoved) {
             toggleMenu();
+        }
+    });
+
+    // Prevent clicks inside the menu from closing it via the document listener
+    menu.addEventListener("click", (e) => {
+        e.stopPropagation();
+    });
+
+    // Close menu when clicking outside
+    document.addEventListener("click", () => {
+        if (menu && menu.classList.contains("visible")) {
+            toggleMenu(false);
         }
     });
 
@@ -298,8 +312,38 @@ function setupListeners() {
     });
 
     window.addEventListener("resize", () => {
+        updateBubblePosition();
         updateMenuPosition();
     });
+}
+
+function updateBubblePosition() {
+    if (!bubbleContainer) return;
+
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+    const rect = bubbleContainer.getBoundingClientRect();
+    const gap = 20;
+
+    // Only clamp if it was moved (top/left are set)
+    if (bubbleContainer.style.top !== "auto" || bubbleContainer.style.left !== "auto") {
+        let newTop = rect.top;
+        let newLeft = rect.left;
+
+        if (newLeft + rect.width > viewportWidth - gap) {
+            newLeft = viewportWidth - rect.width - gap;
+        }
+        if (newTop + rect.height > viewportHeight - gap) {
+            newTop = viewportHeight - rect.height - gap;
+        }
+
+        // Clamp to positive space too
+        if (newLeft < gap) newLeft = gap;
+        if (newTop < gap) newTop = gap;
+
+        bubbleContainer.style.top = `${newTop}px`;
+        bubbleContainer.style.left = `${newLeft}px`;
+    }
 }
 
 async function applySavedTheme() {
