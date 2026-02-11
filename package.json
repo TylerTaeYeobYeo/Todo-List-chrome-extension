@@ -1,5 +1,5 @@
 {
-  "name": "firstapp",
+  "name": "quick-todo-list",
   "module": "index.ts",
   "type": "module",
   "private": true,

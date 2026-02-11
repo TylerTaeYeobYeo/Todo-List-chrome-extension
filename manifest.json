@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "My Bun Extension",
+  "name": "Quick todo list",
   "version": "1.0",
-  "description": "A Chrome extension built with Bun and TypeScript",
+  "description": "A distraction-free, floating todo list that follows you across the web.",
   "permissions": [
     "activeTab",
     "scripting",
