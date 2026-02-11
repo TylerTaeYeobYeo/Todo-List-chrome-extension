@@ -53,8 +53,8 @@ function injectStyles() {
 
 function createBubble() {
     bubbleContainer = document.createElement("div");
-    bubbleContainer.id = "bun-bubble-container";
-    bubbleContainer.classList.add("bun-scope");
+    bubbleContainer.id = "tytd-bubble-container";
+    bubbleContainer.classList.add("tytd-scope");
     // Apply current theme state immediately?
     // Easier: just re-apply based on current storage or keep state in a variable.
     // But since applySavedTheme is async, we might want to just let the listener handle it or re-read.
@@ -63,10 +63,10 @@ function createBubble() {
     bubbleContainer.style.right = "20px";
 
     bubble = document.createElement("div");
-    bubble.className = "bun-bubble";
+    bubble.className = "tytd-bubble";
     // Lightning bolt SVG
     bubble.innerHTML = `
-    <svg class="bun-bubble-icon" viewBox="0 0 24 24">
+    <svg class="tytd-bubble-icon" viewBox="0 0 24 24">
       <path d="M7 2v11h3v9l7-12h-4l4-8z"/>
     </svg>
   `;
@@ -122,17 +122,17 @@ function createBubble() {
 
 function createMenu() {
     menu = document.createElement("div");
-    menu.className = "bun-menu bun-scope";
+    menu.className = "tytd-menu tytd-scope";
 
     const header = document.createElement("div");
-    header.className = "bun-menu-header";
+    header.className = "tytd-menu-header";
     header.textContent = "My Tasks";
 
     todoList = document.createElement("ul");
-    todoList.className = "bun-todo-list";
+    todoList.className = "tytd-todo-list";
 
     const addButton = document.createElement("button");
-    addButton.className = "bun-add-btn";
+    addButton.className = "tytd-add-btn";
     addButton.innerHTML = `
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
       <line x1="12" y1="5" x2="12" y2="19"></line>
@@ -213,28 +213,28 @@ function updateMenuPosition() {
 
 function createDialog() {
     dialogOverlay = document.createElement("div");
-    dialogOverlay.className = "bun-dialog-overlay bun-scope";
+    dialogOverlay.className = "tytd-dialog-overlay tytd-scope";
 
     const dialog = document.createElement("div");
-    dialog.className = "bun-dialog";
+    dialog.className = "tytd-dialog";
 
     const title = document.createElement("h3");
     title.textContent = "Add New Task";
 
     const input = document.createElement("input");
-    input.className = "bun-input";
+    input.className = "tytd-input";
     input.type = "text";
     input.placeholder = "What needs to be done?";
 
     const actions = document.createElement("div");
-    actions.className = "bun-dialog-actions";
+    actions.className = "tytd-dialog-actions";
 
     const cancelBtn = document.createElement("button");
-    cancelBtn.className = "bun-btn bun-btn-cancel";
+    cancelBtn.className = "tytd-btn tytd-btn-cancel";
     cancelBtn.textContent = "Cancel";
 
     const addBtn = document.createElement("button");
-    addBtn.className = "bun-btn bun-btn-primary";
+    addBtn.className = "tytd-btn tytd-btn-primary";
     addBtn.textContent = "Add";
 
     actions.appendChild(cancelBtn);
@@ -355,12 +355,12 @@ async function applySavedTheme() {
 function applyThemeToScope(theme: string) {
     // We need to apply this to all existing scopes.
     // Currently we have bubble container and dialog overlay.
-    // We can query them by class .bun-scope
-    const scopes = document.querySelectorAll(".bun-scope");
+    // We can query them by class .tytd-scope
+    const scopes = document.querySelectorAll(".tytd-scope");
     scopes.forEach(el => {
-        el.classList.remove("bun-theme-light", "bun-theme-dark");
-        if (theme === "light") el.classList.add("bun-theme-light");
-        if (theme === "dark") el.classList.add("bun-theme-dark");
+        el.classList.remove("tytd-theme-light", "tytd-theme-dark");
+        if (theme === "light") el.classList.add("tytd-theme-light");
+        if (theme === "dark") el.classList.add("tytd-theme-dark");
     });
 }
 
@@ -390,7 +390,7 @@ function renderTodos() {
 
     if (todos.length === 0) {
         const empty = document.createElement("li");
-        empty.className = "bun-todo-item";
+        empty.className = "tytd-todo-item";
         empty.textContent = "No tasks yet!";
         empty.style.color = "#999";
         empty.style.justifyContent = "center";
@@ -400,14 +400,14 @@ function renderTodos() {
 
     todos.forEach(todo => {
         const li = document.createElement("li");
-        li.className = "bun-todo-item";
+        li.className = "tytd-todo-item";
 
         const text = document.createElement("span");
-        text.className = "bun-todo-text";
+        text.className = "tytd-todo-text";
         text.textContent = todo.text;
 
         const deleteBtn = document.createElement("button");
-        deleteBtn.className = "bun-delete-btn";
+        deleteBtn.className = "tytd-delete-btn";
         deleteBtn.innerHTML = `
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <line x1="18" y1="6" x2="6" y2="18"></line>
