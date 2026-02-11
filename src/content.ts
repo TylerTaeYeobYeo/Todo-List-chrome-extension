@@ -23,6 +23,7 @@ let todoList: HTMLUListElement;
 // Constants
 const STORAGE_KEY = "bun_todos";
 const STORAGE_THEME_KEY = "bun_theme";
+const STORAGE_POS_KEY = "tytd_bubble_pos";
 
 async function init() {
     injectStyles();
@@ -56,12 +57,24 @@ function createBubble() {
     bubbleContainer = document.createElement("div");
     bubbleContainer.id = "tytd-bubble-container";
     bubbleContainer.classList.add("tytd-scope");
-    // Apply current theme state immediately?
-    // Easier: just re-apply based on current storage or keep state in a variable.
-    // But since applySavedTheme is async, we might want to just let the listener handle it or re-read.
-    // Optimization: Store current theme in a variable.
-    bubbleContainer.style.bottom = "20px";
-    bubbleContainer.style.right = "20px";
+
+    // Load saved position
+    const savedPos = localStorage.getItem(STORAGE_POS_KEY);
+    if (savedPos) {
+        try {
+            const pos = JSON.parse(savedPos);
+            bubbleContainer.style.top = `${pos.top}px`;
+            bubbleContainer.style.left = `${pos.left}px`;
+            bubbleContainer.style.bottom = "auto";
+            bubbleContainer.style.right = "auto";
+        } catch (e) {
+            bubbleContainer.style.bottom = "20px";
+            bubbleContainer.style.right = "20px";
+        }
+    } else {
+        bubbleContainer.style.bottom = "20px";
+        bubbleContainer.style.right = "20px";
+    }
 
     bubble = document.createElement("div");
     bubble.className = "tytd-bubble";
@@ -354,6 +367,12 @@ function pinToNearestCorner() {
         width: rect.width,
         height: rect.height
     });
+
+    // Save position
+    localStorage.setItem(STORAGE_POS_KEY, JSON.stringify({
+        top: targetTop,
+        left: targetLeft
+    }));
 
     // Clean up transition class after it finishes
     setTimeout(() => {
