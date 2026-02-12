@@ -55,7 +55,7 @@ jobs:
         if: steps.check.outputs.changed == 'true'
         run: |
           VERSION=${{ steps.check.outputs.version }}
-          zip -r quick-todo-list-v${VERSION}.zip dist
+          cd dist && zip -r ../quick-todo-list-v${VERSION}.zip .
 
       - name: Upload Artifact
         if: steps.check.outputs.changed == 'true'
