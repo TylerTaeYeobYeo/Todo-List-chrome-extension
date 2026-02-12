@@ -1,0 +1,50 @@
+name: Extension Release
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  release:
+    name: Package and Release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Check Version Change
+        id: check
+        uses: EndBug/version-check@v2
+        with:
+          file-name: manifest.json
+
+      - name: Setup Bun
+        if: steps.check.outputs.changed == 'true'
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+
+      - name: Install Dependencies
+        if: steps.check.outputs.changed == 'true'
+        run: bun install
+
+      - name: Build Extension
+        if: steps.check.outputs.changed == 'true'
+        run: bun run build
+
+      - name: Zip Extension
+        if: steps.check.outputs.changed == 'true'
+        run: |
+          VERSION=${{ steps.check.outputs.version }}
+          zip -r quick-todo-list-v${VERSION}.zip dist
+
+      - name: Upload Artifact
+        if: steps.check.outputs.changed == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: quick-todo-list-v${{ steps.check.outputs.version }}
+          path: quick-todo-list-v${{ steps.check.outputs.version }}.zip
