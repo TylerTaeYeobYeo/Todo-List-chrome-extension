@@ -16,6 +16,8 @@
     --tytd-input-border: #ddd;
     --tytd-success: #52c41a;
     --tytd-success-bg: #f6ffed;
+    --tytd-warning: #faad14;
+    --tytd-warning-bg: #fffbe6;
 }
 
 /* Bubble Container */
@@ -44,6 +46,8 @@
         --tytd-input-border: #444;
         --tytd-success: #73d13d;
         --tytd-success-bg: #1d3712;
+        --tytd-warning: #ffc53d;
+        --tytd-warning-bg: #443110;
     }
 }
 
@@ -62,6 +66,8 @@
     --tytd-input-border: #444;
     --tytd-success: #73d13d;
     --tytd-success-bg: #1d3712;
+    --tytd-warning: #ffc53d;
+    --tytd-warning-bg: #443110;
 }
 
 /* Forced Light Theme */
@@ -79,6 +85,8 @@
     --tytd-input-border: #ddd;
     --tytd-success: #52c41a;
     --tytd-success-bg: #f6ffed;
+    --tytd-warning: #faad14;
+    --tytd-warning-bg: #fffbe6;
 }
 
 /* Floating Bubble */
@@ -163,10 +171,16 @@
     flex: 1;
     margin-right: 10px;
     color: var(--tytd-text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+    /* Critical for flex truncation */
 }
 
 .tytd-delete-btn,
-.tytd-done-btn {
+.tytd-done-btn,
+.tytd-edit-btn {
     background: none;
     border: none;
     color: var(--tytd-text-secondary);
@@ -177,6 +191,11 @@
     display: flex;
     align-items: center;
     justify-content: center;
+}
+
+.tytd-edit-btn:hover {
+    color: var(--tytd-warning);
+    background: var(--tytd-warning-bg);
 }
 
 .tytd-delete-btn:hover {

@@ -19,6 +19,7 @@ let bubble: HTMLDivElement;
 let menu: HTMLDivElement;
 let dialogOverlay: HTMLDivElement;
 let todoList: HTMLUListElement;
+let editingTodo: Todo | null = null;
 
 // Constants
 const STORAGE_KEY = "bun_todos";
@@ -270,13 +271,18 @@ function createDialog() {
     };
 
     const submit = async () => {
-        if (input.value.trim()) {
-            const newTodo: Todo = {
-                id: Date.now().toString(),
-                text: input.value.trim(),
-                completed: false
-            };
-            todos.push(newTodo);
+        const text = input.value.trim();
+        if (text) {
+            if (editingTodo) {
+                editingTodo.text = text;
+            } else {
+                const newTodo: Todo = {
+                    id: Date.now().toString(),
+                    text: text,
+                    completed: false
+                };
+                todos.push(newTodo);
+            }
             await saveTodos();
             closeDialog();
         }
@@ -419,10 +425,19 @@ function toggleMenu(force?: boolean) {
     }
 }
 
-function showDialog() {
+function showDialog(todo?: Todo) {
+    editingTodo = todo || null;
     dialogOverlay.classList.add("visible");
+    const title = dialogOverlay.querySelector("h3");
     const input = dialogOverlay.querySelector("input");
-    if (input) input.focus();
+    const submitBtn = dialogOverlay.querySelector(".tytd-btn-primary");
+
+    if (title) title.textContent = editingTodo ? "Edit Task" : "Add New Task";
+    if (input) {
+        input.value = editingTodo ? editingTodo.text : "";
+        input.focus();
+    }
+    if (submitBtn) submitBtn.textContent = editingTodo ? "Save" : "Add";
 }
 
 function renderTodos() {
@@ -448,6 +463,7 @@ function renderTodos() {
         const text = document.createElement("span");
         text.className = "tytd-todo-text";
         text.textContent = todo.text;
+        text.title = todo.text; // Add tooltip
 
         const actionButtons = document.createElement("div");
         actionButtons.style.display = "flex";
@@ -471,6 +487,19 @@ function renderTodos() {
             await saveTodos();
         });
 
+        const editBtn = document.createElement("button");
+        editBtn.className = "tytd-edit-btn";
+        editBtn.innerHTML = `
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+      </svg>
+    `;
+        editBtn.addEventListener("click", () => {
+            showDialog(todo);
+            toggleMenu(false);
+        });
+
         const deleteBtn = document.createElement("button");
         deleteBtn.className = "tytd-delete-btn";
         deleteBtn.innerHTML = `
@@ -486,6 +515,7 @@ function renderTodos() {
 
         li.appendChild(text);
         actionButtons.appendChild(doneBtn);
+        actionButtons.appendChild(editBtn);
         actionButtons.appendChild(deleteBtn);
         li.appendChild(actionButtons);
         todoList.appendChild(li);

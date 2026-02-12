@@ -31,6 +31,7 @@ async function loadAndRenderDoneTodos() {
         const textTd = document.createElement("td");
         textTd.textContent = todo.text;
         textTd.className = "done-todo-text";
+        textTd.title = todo.text; // Add tooltip
 
         const timeTd = document.createElement("td");
         timeTd.textContent = todo.completedAt || "-";
@@ -93,12 +94,12 @@ if (themeSelector) {
 }
 
 function applyTheme(theme: string) {
-    document.body.classList.remove("tytd-theme-light", "tytd-theme-dark");
+    document.documentElement.classList.remove("tytd-theme-light", "tytd-theme-dark");
 
     if (theme === "light") {
-        document.body.classList.add("tytd-theme-light");
+        document.documentElement.classList.add("tytd-theme-light");
     } else if (theme === "dark") {
-        document.body.classList.add("tytd-theme-dark");
+        document.documentElement.classList.add("tytd-theme-dark");
     }
     // 'system' does nothing (removes classes), letting media query take over
 }
