@@ -51,15 +51,9 @@ jobs:
         if: steps.check.outputs.changed == 'true'
         run: bun run build
 
-      - name: Zip Extension
-        if: steps.check.outputs.changed == 'true'
-        run: |
-          VERSION=${{ steps.check.outputs.version }}
-          cd dist && zip -r ../quick-todo-list-v${VERSION}.zip .
-
       - name: Upload Artifact
         if: steps.check.outputs.changed == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: quick-todo-list-v${{ steps.check.outputs.version }}
-          path: quick-todo-list-v${{ steps.check.outputs.version }}.zip
+          path: dist/
