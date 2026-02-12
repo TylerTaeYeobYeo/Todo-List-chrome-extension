@@ -31,6 +31,7 @@ async function loadAndRenderDoneTodos() {
         const textTd = document.createElement("td");
         textTd.textContent = todo.text;
         textTd.className = "done-todo-text";
+        textTd.title = todo.text; // Add tooltip
 
         const timeTd = document.createElement("td");
         timeTd.textContent = todo.completedAt || "-";

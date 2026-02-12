@@ -171,6 +171,11 @@
     flex: 1;
     margin-right: 10px;
     color: var(--tytd-text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+    /* Critical for flex truncation */
 }
 
 .tytd-delete-btn,

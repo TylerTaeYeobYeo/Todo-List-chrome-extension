@@ -463,6 +463,7 @@ function renderTodos() {
         const text = document.createElement("span");
         text.className = "tytd-todo-text";
         text.textContent = todo.text;
+        text.title = todo.text; // Add tooltip
 
         const actionButtons = document.createElement("div");
         actionButtons.style.display = "flex";
