@@ -11,7 +11,11 @@ interface Todo {
 let todos: Todo[] = [];
 let isDragging = false;
 let dragOffset = { x: 0, y: 0 };
+
 let hasMoved = false; // To distinguish click vs drag
+let draggedItemIndex: number | null = null;
+let autoHideTimer: any;
+const AUTO_HIDE_DELAY = 5 * 1000;
 
 // DOM Elements
 let bubbleContainer: HTMLDivElement;
@@ -29,7 +33,7 @@ const STORAGE_POS_KEY = "tytd_bubble_pos";
 async function init() {
     injectStyles();
     await applySavedTheme();
-    createBubble();
+    await createBubble();
     createMenu();
     createDialog();
     setupListeners();
@@ -54,16 +58,22 @@ function injectStyles() {
     document.head.appendChild(link);
 }
 
-function createBubble() {
+async function createBubble() {
     bubbleContainer = document.createElement("div");
     bubbleContainer.id = "tytd-bubble-container";
     bubbleContainer.classList.add("tytd-scope");
 
     // Load saved position
-    const savedPos = localStorage.getItem(STORAGE_POS_KEY);
+    const result = await chrome.storage.sync.get([STORAGE_POS_KEY]);
+    const savedPos = result[STORAGE_POS_KEY];
+
     if (savedPos) {
         try {
-            const pos = JSON.parse(savedPos);
+            // savedPos is already an object if coming from storage.sync, 
+            // but we should check type or parse if we stored as string.
+            // In pinToNearestCorner we will store as object.
+            const pos = typeof savedPos === 'string' ? JSON.parse(savedPos) : savedPos;
+
             bubbleContainer.style.top = `${pos.top}px`;
             bubbleContainer.style.left = `${pos.left}px`;
             bubbleContainer.style.bottom = "auto";
@@ -239,10 +249,10 @@ function createDialog() {
     const title = document.createElement("h3");
     title.textContent = "Add New Task";
 
-    const input = document.createElement("input");
+    const input = document.createElement("textarea");
     input.className = "tytd-input";
-    input.type = "text";
-    input.placeholder = "What needs to be done?";
+    // input.type = "text"; // Textarea does not have type attribute
+    input.placeholder = "What needs to be done? (Shift+Enter for new line)";
 
     const actions = document.createElement("div");
     actions.className = "tytd-dialog-actions";
@@ -292,7 +302,10 @@ function createDialog() {
     addBtn.addEventListener("click", submit);
 
     input.addEventListener("keydown", (e) => {
-        if (e.key === "Enter") submit();
+        if (e.key === "Enter" && !e.shiftKey) {
+            e.preventDefault(); // Prevent newline in textarea
+            submit();
+        }
         if (e.key === "Escape") closeDialog();
     });
 
@@ -338,6 +351,13 @@ function setupListeners() {
         pinToNearestCorner();
         updateMenuPosition();
     });
+
+    // Auto-hide listeners
+    document.addEventListener("mousemove", resetAutoHideTimer);
+    document.addEventListener("keydown", resetAutoHideTimer);
+    document.addEventListener("click", resetAutoHideTimer);
+    document.addEventListener("scroll", resetAutoHideTimer);
+    resetAutoHideTimer();
 }
 
 function pinToNearestCorner() {
@@ -375,10 +395,19 @@ function pinToNearestCorner() {
     });
 
     // Save position
-    localStorage.setItem(STORAGE_POS_KEY, JSON.stringify({
+    const posData = {
         top: targetTop,
         left: targetLeft
-    }));
+    };
+
+    // Use chrome.storage.sync instead of localStorage
+    // We catch errors to handle quota exceeded or other storage issues
+    // Also check if runtime is valid to avoid "Extension context invalidated"
+    if (chrome.runtime?.id) {
+        chrome.storage.sync.set({ [STORAGE_POS_KEY]: posData }).catch((err) => {
+            console.warn("Failed to save bubble position:", err);
+        });
+    }
 
     // Clean up transition class after it finishes
     setTimeout(() => {
@@ -429,7 +458,8 @@ function showDialog(todo?: Todo) {
     editingTodo = todo || null;
     dialogOverlay.classList.add("visible");
     const title = dialogOverlay.querySelector("h3");
-    const input = dialogOverlay.querySelector("input");
+
+    const input = dialogOverlay.querySelector("textarea") as HTMLTextAreaElement;
     const submitBtn = dialogOverlay.querySelector(".tytd-btn-primary");
 
     if (title) title.textContent = editingTodo ? "Edit Task" : "Add New Task";
@@ -445,6 +475,7 @@ function renderTodos() {
     todoList.innerHTML = "";
 
     const activeTodos = todos.filter(t => !t.completed);
+    updateBubbleIcon(activeTodos.length);
 
     if (activeTodos.length === 0) {
         const empty = document.createElement("li");
@@ -456,9 +487,84 @@ function renderTodos() {
         return;
     }
 
-    activeTodos.forEach(todo => {
+    activeTodos.forEach((todo, index) => {
         const li = document.createElement("li");
         li.className = "tytd-todo-item";
+
+        // Drag and Drop
+        li.draggable = true;
+
+        li.addEventListener("dragstart", (e) => {
+            draggedItemIndex = index;
+            li.classList.add("dragging");
+            // e.dataTransfer!.effectAllowed = 'move';
+        });
+
+        li.addEventListener("dragend", () => {
+            li.classList.remove("dragging");
+            draggedItemIndex = null;
+            // Remove all drag-over classes
+            document.querySelectorAll(".tytd-todo-item").forEach(item => {
+                item.classList.remove("drag-over-top");
+                item.classList.remove("drag-over-bottom");
+            });
+        });
+
+        li.addEventListener("dragover", (e) => {
+            e.preventDefault(); // Allow drop
+            if (draggedItemIndex === null || draggedItemIndex === index) return;
+
+            const rect = li.getBoundingClientRect();
+            const midpoint = rect.top + rect.height / 2;
+
+            li.classList.remove("drag-over-top", "drag-over-bottom");
+
+            if (e.clientY < midpoint) {
+                li.classList.add("drag-over-top");
+            } else {
+                li.classList.add("drag-over-bottom");
+            }
+        });
+
+        li.addEventListener("dragleave", () => {
+            li.classList.remove("drag-over-top", "drag-over-bottom");
+        });
+
+        li.addEventListener("drop", async (e) => {
+            e.preventDefault();
+            li.classList.remove("drag-over-top", "drag-over-bottom");
+
+            if (draggedItemIndex === null || draggedItemIndex === index) return;
+
+            const rect = li.getBoundingClientRect();
+            const midpoint = rect.top + rect.height / 2;
+            const dropAfter = e.clientY >= midpoint;
+
+            // Reorder activeTodos
+            const itemToMove = activeTodos[draggedItemIndex];
+
+            // Remove item
+            activeTodos.splice(draggedItemIndex, 1);
+
+            // Calculate insertion index
+            // If we removed an item before the target, the target index shifts down by 1.
+            let insertIndex = index;
+            if (draggedItemIndex < index) {
+                insertIndex--;
+            }
+
+            if (dropAfter) {
+                insertIndex++;
+            }
+
+            activeTodos.splice(insertIndex, 0, itemToMove);
+
+            // Reconstruct full todos list (active + completed)
+            const completedTodos = todos.filter(t => t.completed);
+            todos = [...activeTodos, ...completedTodos];
+
+            await saveTodos();
+        });
 
         const text = document.createElement("span");
         text.className = "tytd-todo-text";
@@ -523,3 +629,35 @@ function renderTodos() {
 }
 
 init();
+
+function resetAutoHideTimer() {
+    clearTimeout(autoHideTimer);
+    if (bubbleContainer) {
+        bubbleContainer.classList.remove("tytd-hidden");
+    }
+
+    // Only set timer if menu is NOT visible
+    // Also check if dragging? Usually dragging implies mousemove, so timer resets.
+    if (menu && !menu.classList.contains("visible") && !isDragging) {
+        autoHideTimer = setTimeout(() => {
+            if (bubbleContainer) {
+                bubbleContainer.classList.add("tytd-hidden");
+            }
+        }, AUTO_HIDE_DELAY);
+    }
+}
+
+function updateBubbleIcon(count: number) {
+    if (!bubble) return;
+
+    if (count > 1) {
+        bubble.innerHTML = `<span style="font-size: 24px; color: white;">${count}</span>`;
+    } else {
+        // Default lightning bolt
+        bubble.innerHTML = `
+        <svg class="tytd-bubble-icon" viewBox="0 0 24 24">
+          <path d="M7 2v11h3v9l7-12h-4l4-8z"/>
+        </svg>
+      `;
+    }
+}

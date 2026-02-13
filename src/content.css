@@ -1,6 +1,8 @@
+@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css");
+
 /* Shared Theme Scope */
 .tytd-scope {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-family: 'Pretendard', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 
     /* Light Theme Variables */
     --tytd-bg: white;
@@ -24,11 +26,13 @@
 #tytd-bubble-container {
     position: fixed;
     z-index: 999999;
+    transition: opacity 0.5s ease-in-out;
 }
 
 #tytd-bubble-container.tytd-pinning {
     transition: top 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28),
-        left 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+        left 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28),
+        opacity 0.5s ease-in-out;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -158,7 +162,6 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 10px 16px;
     border-bottom: 1px solid var(--tytd-border);
     font-size: 14px;
 }
@@ -266,23 +269,76 @@
     color: var(--tytd-text);
 }
 
+/* Input/Textarea */
 .tytd-input {
     width: 100%;
-    padding: 10px;
+    padding: 8px;
     border: 1px solid var(--tytd-input-border);
+    /* Use CSS variable */
     background: var(--tytd-input-bg);
+    /* Use CSS variable */
     color: var(--tytd-text);
+    /* Use CSS variable */
     border-radius: 6px;
+    /* Adjusted from 4px to 6px for consistency */
     margin-bottom: 16px;
-    box-sizing: border-box;
+    font-family: inherit;
     font-size: 14px;
+    resize: vertical;
+    /* Allow vertical resize for textarea */
+    min-height: 36px;
+    box-sizing: border-box;
+}
+
+textarea.tytd-input {
+    min-height: 80px;
 }
 
 .tytd-input:focus {
-    border-color: var(--tytd-accent);
     outline: none;
+    border-color: var(--tytd-accent);
+    /* Use CSS variable */
 }
 
+/* Drag and Drop */
+.tytd-todo-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 4px 10px 12px;
+    border-bottom: 1px solid var(--tytd-border);
+    /* Use CSS variable */
+    cursor: grab;
+    /* Show grab cursor */
+    transition: all 0.2s;
+}
+
+.tytd-todo-item:last-child {
+    border-bottom: none;
+}
+
+.tytd-todo-item.dragging {
+    opacity: 0.5;
+    background: var(--tytd-hover);
+    /* Use CSS variable */
+}
+
+.tytd-todo-item.drag-over-top {
+    border-top: 2px solid var(--tytd-accent);
+}
+
+.tytd-todo-item.drag-over-bottom {
+    border-bottom: 2px solid var(--tytd-accent);
+}
+
+/* Auto-hide */
+.tytd-hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* Ensure menu interaction keeps bubble visible if we want,
+   but logic will handle removing the class. */
 .tytd-dialog-actions {
     display: flex;
     justify-content: flex-end;
