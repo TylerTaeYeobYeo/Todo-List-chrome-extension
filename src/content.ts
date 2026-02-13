@@ -451,10 +451,10 @@ function toggleMenu(force?: boolean) {
         menu.classList.add("visible");
         // Reset height limits before measuring
         menu.style.maxHeight = "";
-        
+
         // Immediate update (might be slightly off due to animation scale)
         updateMenuPosition();
-        
+
         // Update again after next paint to ensure correct dimensions are caught
         requestAnimationFrame(() => {
             updateMenuPosition();
@@ -663,14 +663,10 @@ function resetAutoHideTimer() {
 function updateBubbleIcon(count: number) {
     if (!bubble) return;
 
-    if (count > 1) {
-        bubble.innerHTML = `<span style="font-size: 24px; color: white;">${count}</span>`;
-    } else {
-        // Default lightning bolt
-        bubble.innerHTML = `
-        <svg class="tytd-bubble-icon" viewBox="0 0 24 24">
+    // Always show lightning bolt, no count
+    bubble.innerHTML = `
+        <svg class="tytd-bubble-icon" viewBox="0 0 24 24"${count > 0 ? ` style="width: 20px;"` : ""}>
           <path d="M7 2v11h3v9l7-12h-4l4-8z"/>
-        </svg>
-      `;
-    }
+        </svg>${count > 0 ? `<span style="font-size: 20px; line-height: 30px; color: white;">${count}</span>` : ""}
+    `;
 }
