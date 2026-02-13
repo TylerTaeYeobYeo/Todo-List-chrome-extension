@@ -40,6 +40,7 @@ const iconsDir = join(distDir, "icons");
 await mkdir(iconsDir, { recursive: true });
 await copyFile("icons/icon16.png", join(iconsDir, "icon16.png"));
 await copyFile("icons/icon48.png", join(iconsDir, "icon48.png"));
+await copyFile("icons/icon96.png", join(iconsDir, "icon96.png"));
 await copyFile("icons/icon128.png", join(iconsDir, "icon128.png"));
 
 console.log("Extension ready in ./dist");
