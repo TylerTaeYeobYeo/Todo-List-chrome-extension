@@ -21,7 +21,7 @@ async function loadAndRenderDoneTodos() {
     doneListBody.innerHTML = "";
 
     if (doneTodos.length === 0) {
-        doneListBody.innerHTML = `<tr><td colspan="2" style="text-align: center; color: #999;">No completed tasks</td></tr>`;
+        doneListBody.innerHTML = `<tr><td colspan="3" style="text-align: center; color: #999;">No completed tasks</td></tr>`;
         return;
     }
 

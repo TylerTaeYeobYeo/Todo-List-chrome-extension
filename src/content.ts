@@ -188,13 +188,16 @@ function updateMenuPosition(targetRect?: { top: number, left: number, width: num
     const menuRect = menu.getBoundingClientRect();
     const viewportWidth = window.innerWidth;
     const viewportHeight = window.innerHeight;
-    const gap = 12;
+    const gap = 20;
     const screenPadding = 20;
+
+    // Use offsetDimensions to avoid transform skewing from animations
+    const menuHeight = menu.offsetHeight || menuRect.height || 300;
+    const menuWidth = menu.offsetWidth || menuRect.width || 250;
 
     // Vertical Positioning
     const spaceAbove = containerRect.top;
     const spaceBelow = viewportHeight - (containerRect.top + containerRect.height);
-    const menuHeight = menuRect.height || 300;
 
     let relativeTop = 0;
 
@@ -216,21 +219,21 @@ function updateMenuPosition(targetRect?: { top: number, left: number, width: num
 
     // Horizontal Positioning (Relative to container)
     // Align center with container (bubble)
-    let relativeLeft = (containerRect.width / 2) - (menuRect.width / 2);
+    let relativeLeft = (containerRect.width / 2) - (menuWidth / 2);
 
     // Global clamping check (to ensure it doesn't go off-screen)
     const absoluteLeft = containerRect.left + relativeLeft;
     if (absoluteLeft < screenPadding) {
         relativeLeft = screenPadding - containerRect.left;
-    } else if (absoluteLeft + menuRect.width > viewportWidth - screenPadding) {
-        relativeLeft = (viewportWidth - screenPadding - menuRect.width) - containerRect.left;
+    } else if (absoluteLeft + menuWidth > viewportWidth - screenPadding) {
+        relativeLeft = (viewportWidth - screenPadding - menuWidth) - containerRect.left;
     }
 
     const absoluteTop = containerRect.top + relativeTop;
     if (absoluteTop < screenPadding) {
         relativeTop = screenPadding - containerRect.top;
-    } else if (absoluteTop + menuRect.height > viewportHeight - screenPadding) {
-        relativeTop = (viewportHeight - screenPadding - menuRect.height) - containerRect.top;
+    } else if (absoluteTop + menuHeight > viewportHeight - screenPadding) {
+        relativeTop = (viewportHeight - screenPadding - menuHeight) - containerRect.top;
     }
 
     menu.style.top = `${relativeTop}px`;
@@ -448,7 +451,14 @@ function toggleMenu(force?: boolean) {
         menu.classList.add("visible");
         // Reset height limits before measuring
         menu.style.maxHeight = "";
+        
+        // Immediate update (might be slightly off due to animation scale)
         updateMenuPosition();
+        
+        // Update again after next paint to ensure correct dimensions are caught
+        requestAnimationFrame(() => {
+            updateMenuPosition();
+        });
     } else {
         menu.classList.remove("visible");
     }
@@ -626,6 +636,9 @@ function renderTodos() {
         li.appendChild(actionButtons);
         todoList.appendChild(li);
     });
+
+    // Update position in case height changed
+    requestAnimationFrame(() => updateMenuPosition());
 }
 
 init();
