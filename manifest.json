@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "Quick todo list",
+  "name": "TaskFlow - quick todo list",
   "version": "1.2.3",
-  "description": "A distraction-free, floating todo list that follows you across the web.",
+  "description": "A distraction-free, floating todo list that follows you across the browser.",
   "permissions": [
     "activeTab",
     "scripting",
