@@ -1,13 +1,13 @@
-# Quick todo list 🚀
+# TaskFlow - quick todo list 🚀
 
-**Quick todo list** is a lightweight, distraction-free browser extension that keeps your tasks within reach, no matter where you are on the web. It features a sleek, floating bubble that snaps to corners and remembers your preferred position for every individual website.
+**TaskFlow** is a distraction-free, floating todo list that follows you across the browser. It features a sleek, floating bubble that snaps to corners and remembers your preferred position for every individual website.
 
 ---
 
 ## ✨ Features
 
 - **Floating Bubble UI**: A minimalist bubble that floats above all websites, providing instant access to your tasks.
-- **Smart Pinning**: Drag and drop the bubble! It intelligently snaps to the nearest corner with a smooth, premium animation.
+- **Smart Pinning**: Drag and drop the bubble! It intelligently snaps to the nearest corner with a smooth, premium "Liquid Glass" animation.
 - **Per-Page Persistence**: The bubble remembers its unique position for every website you visit.
 - **Task Management**:
     - Add tasks on the fly with a clean dialog.
