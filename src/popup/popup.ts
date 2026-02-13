@@ -21,7 +21,7 @@ async function loadAndRenderDoneTodos() {
     doneListBody.innerHTML = "";
 
     if (doneTodos.length === 0) {
-        doneListBody.innerHTML = `<tr><td colspan="2" style="text-align: center; color: #999;">No completed tasks</td></tr>`;
+        doneListBody.innerHTML = `<tr><td colspan="3" style="text-align: center; color: #999;">No completed tasks</td></tr>`;
         return;
     }
 
@@ -72,24 +72,33 @@ chrome.storage.onChanged.addListener((changes, area) => {
     }
 });
 
-const themeSelector = document.getElementById("theme-selector") as HTMLSelectElement;
+const themeButtons = document.querySelectorAll(".theme-btn");
 const STORAGE_THEME_KEY = "bun_theme";
 
 // Load saved theme
 chrome.storage.sync.get([STORAGE_THEME_KEY], (result) => {
     const savedTheme = (result[STORAGE_THEME_KEY] as string) || "system";
-    if (themeSelector) {
-        themeSelector.value = savedTheme;
-    }
+    updateActiveButton(savedTheme);
     applyTheme(savedTheme);
 });
 
-// Handle change
-if (themeSelector) {
-    themeSelector.addEventListener("change", (e) => {
-        const newTheme = (e.target as HTMLSelectElement).value;
+// Handle clicks
+themeButtons.forEach(btn => {
+    btn.addEventListener("click", () => {
+        const newTheme = (btn as HTMLElement).dataset.theme || "system";
         chrome.storage.sync.set({ [STORAGE_THEME_KEY]: newTheme });
+        updateActiveButton(newTheme);
         applyTheme(newTheme);
+    });
+});
+
+function updateActiveButton(theme: string) {
+    themeButtons.forEach(btn => {
+        if ((btn as HTMLElement).dataset.theme === theme) {
+            btn.classList.add("active");
+        } else {
+            btn.classList.remove("active");
+        }
     });
 }
 

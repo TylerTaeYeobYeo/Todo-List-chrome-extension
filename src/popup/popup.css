@@ -1,110 +1,188 @@
+@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css");
+
 :root {
-  --popup-bg: white;
-  --popup-text: #333;
-  --popup-text-secondary: #666;
-  --popup-text-muted: #888;
-  --popup-text-header: #666;
-  --popup-border: #eee;
-  --popup-border-table: #f5f5f5;
-  --popup-selector-border: #ddd;
-  --popup-selector-bg: white;
-  --popup-del-btn-bg: #ffeded;
-  --popup-del-btn-text: #ff4d4d;
+  /* Light Theme */
+  --popup-bg: #f2f2f7;
+  --popup-text: #1d1d1f;
+  --popup-text-secondary: #86868b;
+  --popup-text-muted: #d2d2d7;
+  --popup-text-header: #86868b;
+  --popup-border: rgba(0,0,0,0.05);
+  --popup-border-table: rgba(0,0,0,0.05);
+  --popup-selector-border: rgba(0,0,0,0.1);
+  --popup-selector-bg: rgba(0,0,0,0.02);
+  --popup-del-btn-bg: rgba(255, 59, 48, 0.1);
+  --popup-del-btn-text: #ff3b30;
+  --popup-accent: #AF52DE;
+  --popup-hover: rgba(0,0,0,0.05);
+  --popup-table-row-bg: #eeeeee;
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not(.tytd-theme-light) {
-    --popup-bg: #1a1a1a;
-    --popup-text: #eee;
-    --popup-text-secondary: #aaa;
-    --popup-text-muted: #888;
-    --popup-text-header: #aaa;
-    --popup-border: #333;
-    --popup-border-table: #222;
-    --popup-selector-border: #444;
-    --popup-selector-bg: #333;
-    --popup-del-btn-bg: #331111;
-    --popup-del-btn-text: #ff6b6b;
+    --popup-bg: #1e1e1e;
+    --popup-text: #f5f5f7;
+    --popup-text-secondary: #86868b;
+    --popup-text-muted: #424245;
+    --popup-text-header: #86868b;
+    --popup-border: rgba(255,255,255,0.1);
+    --popup-border-table: rgba(255,255,255,0.05);
+    --popup-selector-border: rgba(255,255,255,0.1);
+    --popup-selector-bg: rgba(255,255,255,0.05);
+    --popup-del-btn-bg: rgba(255, 69, 58, 0.2);
+    --popup-del-btn-text: #ff453a;
+    --popup-hover: rgba(255,255,255,0.1);
+    --popup-table-row-bg: #1a1919;
   }
 }
 
 .tytd-theme-dark {
-  --popup-bg: #1a1a1a;
-  --popup-text: #eee;
-  --popup-text-secondary: #aaa;
-  --popup-text-muted: #888;
-  --popup-text-header: #aaa;
-  --popup-border: #333;
-  --popup-border-table: #222;
-  --popup-selector-border: #444;
-  --popup-selector-bg: #333;
-  --popup-del-btn-bg: #331111;
-  --popup-del-btn-text: #ff6b6b;
+    --popup-bg: #1e1e1e;
+    --popup-text: #f5f5f7;
+    --popup-text-secondary: #86868b;
+    --popup-text-muted: #424245;
+    --popup-text-header: #86868b;
+    --popup-border: rgba(255,255,255,0.1);
+    --popup-border-table: rgba(255,255,255,0.05);
+    --popup-selector-border: rgba(255,255,255,0.1);
+    --popup-selector-bg: rgba(255,255,255,0.05);
+    --popup-del-btn-bg: rgba(255, 69, 58, 0.2);
+    --popup-del-btn-text: #ff453a;
+    --popup-hover: rgba(255,255,255,0.1);
+    --popup-table-row-bg: #2c2c2e;
 }
 
 .tytd-theme-light {
-  --popup-bg: white;
-  --popup-text: #333;
-  --popup-text-secondary: #666;
-  --popup-text-muted: #888;
-  --popup-text-header: #666;
-  --popup-border: #eee;
-  --popup-border-table: #f5f5f5;
-  --popup-selector-border: #ddd;
-  --popup-selector-bg: white;
-  --popup-del-btn-bg: #ffeded;
-  --popup-del-btn-text: #ff4d4d;
+    --popup-bg: #f2f2f7;
+    --popup-text: #1d1d1f;
+    --popup-text-secondary: #86868b;
+    --popup-text-muted: #d2d2d7;
+    --popup-text-header: #86868b;
+    --popup-border: rgba(0,0,0,0.05);
+    --popup-border-table: rgba(0,0,0,0.05);
+    --popup-selector-border: rgba(0,0,0,0.1);
+    --popup-selector-bg: rgba(0,0,0,0.02);
+    --popup-del-btn-bg: rgba(255, 59, 48, 0.1);
+    --popup-del-btn-text: #ff3b30;
+    --popup-hover: rgba(0,0,0,0.05);
+    --popup-table-row-bg: #eeeeee
+}
+
+body {
+  width: 440px;
+  padding: 16px;
+  font-family: 'Pretendard', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: var(--popup-bg);
+  color: var(--popup-text);
+  margin: 0;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+h3 {
+  margin: 16px 0 8px 0;
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--popup-text-header);
+  letter-spacing: 0.5px;
+}
+
+/* Theme Buttons */
+.theme-buttons-container {
+  display: flex;
+  background-color: var(--popup-selector-bg);
+  padding: 4px;
+  border-radius: 12px;
+  gap: 4px;
+  border: 1px solid var(--popup-selector-border);
+}
+
+.theme-btn {
+  flex: 1;
+  border: none;
+  background: transparent;
+  padding: 8px;
+  border-radius: 8px;
+  cursor: pointer;
+  color: var(--popup-text-secondary);
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.theme-btn:hover {
+  background-color: var(--popup-hover);
+  color: var(--popup-text);
+}
+
+.theme-btn.active {
+  background-color: var(--popup-bg); /* Use main bg to pop out */
+  color: var(--popup-accent);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.done-tasks-section {
+  margin-top: 24px;
 }
 
 .done-list-container {
   min-height: 324px;
+  max-height: 400px;
   overflow-y: auto;
-}
-
-body {
-  width: 350px;
-  padding: 12px;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background-color: var(--popup-bg);
-  color: var(--popup-text);
-  margin: 0;
-}
-
-h3 {
-  margin: 12px 0 8px 0;
-  font-size: 14px;
-}
-
-#theme-selector {
-  width: 100%;
-  padding: 6px;
-  border-radius: 4px;
-  border: 1px solid var(--popup-selector-border);
-  background-color: var(--popup-selector-bg);
-  color: var(--popup-text);
-  outline: none;
-}
-
-.done-tasks-section {
-  margin-top: 16px;
+  overflow-x: hidden;
+  border-radius: 12px;
+  background: var(--popup-selector-bg);
+  display: flex; /* Ensure it behaves like a container */
 }
 
 #done-todo-table {
+  flex: 1;
   width: 100%;
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0px; 
   font-size: 13px;
+}
+
+#done-todo-table tbody {
+  vertical-align: baseline;
 }
 
 #done-todo-table th {
   text-align: left;
-  border-bottom: 2px solid var(--popup-border);
-  padding: 6px 4px;
+  border-bottom: 1px solid var(--popup-border);
+  padding: 8px 16px;
   color: var(--popup-text-header);
+  font-weight: 600;
+  font-size: 12px;
+  position: sticky;
+  top: 0;
+  background-color: var(--popup-selector-bg); 
+  backdrop-filter: blur(10px);
+  z-index: 10;
+  height: 24px;
 }
 
 #done-todo-table td {
-  padding: 8px 4px;
+  padding: 10px 12px;
+  background: var(--popup-table-row-bg); 
+  border-bottom: none; /* Let spacing handle separation visual */
+  /* Remove individual borders since we use spacing/cards */
+}
+
+/* Pseudo-borders via spacing is tricky, let's keep it simple: 
+   Actually with border-spacing: 0, we can use borders. 
+   But the user might want "cards". Let's try adding margin to rows? 
+   Tables can't margin rows easily. 
+   Let's stick to simple list style for now but with refined spacing. 
+*/
+
+#done-todo-table td {
   border-bottom: 1px solid var(--popup-border-table);
+}
+
+#done-todo-table tr:last-child td {
+  border-bottom: none;
 }
 
 .done-todo-text {
@@ -115,16 +193,15 @@ h3 {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  display: block;
 }
 
 .popup-delete-btn {
   background: var(--popup-del-btn-bg);
   color: var(--popup-del-btn-text);
   border: none;
-  border-radius: 4px;
-  width: 24px;
-  height: 24px;
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -136,6 +213,25 @@ h3 {
 }
 
 .popup-delete-btn:hover {
-  background: #ff4d4d;
+  background: #ff3b30;
   color: white;
+  transform: scale(1.1);
+}
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent; 
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--popup-border); 
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--popup-text-secondary); 
 }

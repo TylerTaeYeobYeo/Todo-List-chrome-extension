@@ -10,6 +10,9 @@ jobs:
     name: Package and Release
     runs-on: ubuntu-latest
 
+    permissions:
+      contents: write
+
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -57,3 +60,18 @@ jobs:
         with:
           name: quick-todo-list-v${{ steps.check.outputs.version }}
           path: dist/
+
+      - name: Create Release
+        if: steps.check.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION="${{ steps.check.outputs.version }}"
+          DESCRIPTION=$(bun -e "console.log(JSON.parse(require('fs').readFileSync('manifest.json', 'utf8')).description)")
+          
+          # Zip the dist folder
+          zip -r "extension-v$VERSION.zip" dist/
+          
+          # Create Release using gh cli
+          # This automatically checks if the tag exists; if not, it creates it.
+          gh release create "v$VERSION" "extension-v$VERSION.zip" --title "v$VERSION" --notes "$DESCRIPTION"

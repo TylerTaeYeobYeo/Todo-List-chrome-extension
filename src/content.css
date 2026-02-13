@@ -1,112 +1,128 @@
+@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css");
+
 /* Shared Theme Scope */
 .tytd-scope {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-family: 'Pretendard', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 
-    /* Light Theme Variables */
-    --tytd-bg: white;
-    --tytd-text: #333;
-    --tytd-text-secondary: #666;
-    --tytd-border: #eee;
-    --tytd-hover: #f0f2f5;
-    --tytd-shadow: rgba(0, 0, 0, 0.15);
-    --tytd-accent: #6e8efb;
-    --tytd-danger: #ff4d4f;
-    --tytd-danger-bg: #fff1f0;
-    --tytd-input-bg: white;
-    --tytd-input-border: #ddd;
-    --tytd-success: #52c41a;
-    --tytd-success-bg: #f6ffed;
-    --tytd-warning: #faad14;
-    --tytd-warning-bg: #fffbe6;
+    /* Light Theme Variables - Liquid Glass */
+    --tytd-bg: rgba(255, 255, 255, 0.75);
+    --tytd-glass-border: rgba(255, 255, 255, 0.5);
+    --tytd-text: #1d1d1f;
+    --tytd-text-secondary: #86868b;
+    --tytd-border: rgba(0, 0, 0, 0.05); /* Subtle separator */
+    --tytd-hover: rgba(0, 0, 0, 0.05);
+    --tytd-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+    --tytd-glass-blur: 20px;
+    
+    /* Vibrant Gradients - Purplish Theme */
+    --tytd-accent: #AF52DE;
+    --tytd-accent-gradient: linear-gradient(135deg, #DA8FFF, #9A50FF);
+    --tytd-bubble-gradient: linear-gradient(135deg, #5E5CE6, #BF5AF2, #AC8E68, #FF375F); /* Liquid Purple/Pink mix */
+
+    --tytd-danger: #ff3b30;
+    --tytd-danger-bg: rgba(255, 59, 48, 0.1);
+    --tytd-input-bg: rgba(255, 255, 255, 0.5);
+    --tytd-input-border: rgba(0, 0, 0, 0.1);
+    --tytd-success: #34c759;
+    --tytd-success-bg: rgba(52, 199, 89, 0.1);
+    --tytd-warning: #ffcc00;
+    --tytd-warning-bg: rgba(255, 204, 0, 0.1);
 }
 
 /* Bubble Container */
 #tytd-bubble-container {
     position: fixed;
     z-index: 999999;
+    transition: opacity 0.5s ease-in-out;
 }
 
 #tytd-bubble-container.tytd-pinning {
-    transition: top 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28),
-        left 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+    transition: top 0.3s cubic-bezier(0.25, 1, 0.5, 1),
+        left 0.3s cubic-bezier(0.25, 1, 0.5, 1),
+        opacity 0.5s ease-in-out;
 }
 
 @media (prefers-color-scheme: dark) {
     .tytd-scope:not(.tytd-theme-light) {
-        --tytd-bg: #1f1f1f;
-        --tytd-text: #e0e0e0;
-        --tytd-text-secondary: #aaaaaa;
-        --tytd-border: #333;
-        --tytd-hover: #333;
-        --tytd-shadow: rgba(0, 0, 0, 0.5);
-        --tytd-accent: #6e8efb;
-        --tytd-danger: #ff4d4f;
-        --tytd-danger-bg: #3a1c1c;
-        --tytd-input-bg: #2d2d2d;
-        --tytd-input-border: #444;
-        --tytd-success: #73d13d;
-        --tytd-success-bg: #1d3712;
-        --tytd-warning: #ffc53d;
-        --tytd-warning-bg: #443110;
+        --tytd-bg: rgba(30, 30, 30, 0.70);
+        --tytd-glass-border: rgba(255, 255, 255, 0.1);
+        --tytd-text: #f5f5f7;
+        --tytd-text-secondary: #86868b;
+        --tytd-border: rgba(255, 255, 255, 0.1);
+        --tytd-hover: rgba(255, 255, 255, 0.1);
+        --tytd-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+        --tytd-input-bg: rgba(0, 0, 0, 0.3);
+        --tytd-input-border: rgba(255, 255, 255, 0.1);
+        --tytd-danger-bg: rgba(255, 69, 58, 0.2);
+        --tytd-success-bg: rgba(48, 209, 88, 0.2);
+        --tytd-warning-bg: rgba(255, 214, 10, 0.2);
     }
 }
 
 /* Forced Dark Theme */
 .tytd-scope.tytd-theme-dark {
-    --tytd-bg: #1f1f1f;
-    --tytd-text: #e0e0e0;
-    --tytd-text-secondary: #aaaaaa;
-    --tytd-border: #333;
-    --tytd-hover: #333;
-    --tytd-shadow: rgba(0, 0, 0, 0.5);
-    --tytd-accent: #6e8efb;
-    --tytd-danger: #ff4d4f;
-    --tytd-danger-bg: #3a1c1c;
-    --tytd-input-bg: #2d2d2d;
-    --tytd-input-border: #444;
-    --tytd-success: #73d13d;
-    --tytd-success-bg: #1d3712;
-    --tytd-warning: #ffc53d;
-    --tytd-warning-bg: #443110;
+    --tytd-bg: rgba(30, 30, 30, 0.70);
+    --tytd-glass-border: rgba(255, 255, 255, 0.1);
+    --tytd-text: #f5f5f7;
+    --tytd-text-secondary: #86868b;
+    --tytd-border: rgba(255, 255, 255, 0.1);
+    --tytd-hover: rgba(255, 255, 255, 0.1);
+    --tytd-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    --tytd-input-bg: rgba(0, 0, 0, 0.3);
+    --tytd-input-border: rgba(255, 255, 255, 0.1);
+    --tytd-danger-bg: rgba(255, 69, 58, 0.2);
+    --tytd-success-bg: rgba(48, 209, 88, 0.2);
+    --tytd-warning-bg: rgba(255, 214, 10, 0.2);
 }
 
 /* Forced Light Theme */
 .tytd-scope.tytd-theme-light {
-    --tytd-bg: white;
-    --tytd-text: #333;
-    --tytd-text-secondary: #666;
-    --tytd-border: #eee;
-    --tytd-hover: #f0f2f5;
-    --tytd-shadow: rgba(0, 0, 0, 0.15);
-    --tytd-accent: #6e8efb;
-    --tytd-danger: #ff4d4f;
-    --tytd-danger-bg: #fff1f0;
-    --tytd-input-bg: white;
-    --tytd-input-border: #ddd;
-    --tytd-success: #52c41a;
-    --tytd-success-bg: #f6ffed;
-    --tytd-warning: #faad14;
-    --tytd-warning-bg: #fffbe6;
+    --tytd-bg: rgba(255, 255, 255, 0.75);
+    --tytd-glass-border: rgba(255, 255, 255, 0.5);
+    --tytd-text: #1d1d1f;
+    --tytd-text-secondary: #86868b;
+    --tytd-border: rgba(0, 0, 0, 0.05);
+    --tytd-hover: rgba(0, 0, 0, 0.05);
+    --tytd-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+    --tytd-input-bg: rgba(255, 255, 255, 0.5);
+    --tytd-input-border: rgba(0, 0, 0, 0.1);
+    --tytd-danger-bg: rgba(255, 59, 48, 0.1);
+    --tytd-success-bg: rgba(52, 199, 89, 0.1);
+    --tytd-warning-bg: rgba(255, 204, 0, 0.1);
 }
 
-/* Floating Bubble */
+/* Floating Bubble - Liquid Glass Sphere */
 .tytd-bubble {
     width: 60px;
     height: 60px;
-    background: linear-gradient(135deg, #6e8efb, #a777e3);
+    background: var(--tytd-bubble-gradient);
+    background-size: 200% 200%;
+    animation: tytd-liquid 4s ease infinite;
     border-radius: 50%;
-    box-shadow: 0 4px 15px var(--tytd-shadow);
+    box-shadow: 
+        0 8px 20px rgba(0,118,255, 0.3),
+        inset 0 2px 4px rgba(255,255,255, 0.4),
+        inset 0 -4px 8px rgba(0,0,0, 0.1);
     cursor: grab;
     display: flex;
+    gap: 2px;
     align-items: center;
     justify-content: center;
-    transition: transform 0.2s;
+    transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
     user-select: none;
+    border: 1px solid rgba(255,255,255,0.2);
+    backdrop-filter: blur(5px);
+}
+
+@keyframes tytd-liquid {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
 }
 
 .tytd-bubble:active {
     cursor: grabbing;
-    transform: scale(0.95);
+    transform: scale(0.9);
 }
 
 .tytd-bubble-icon {
@@ -114,43 +130,48 @@
     height: 30px;
     fill: white;
     pointer-events: none;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
 }
 
-/* Menu */
+/* Glass Menu */
 .tytd-menu {
     position: absolute;
     z-index: -1;
-    /* Behind bubble but inside container */
-    width: 250px;
+    width: 280px; /* Slightly wider */
     background: var(--tytd-bg);
-    border-radius: 12px;
-    box-shadow: 0 5px 20px var(--tytd-shadow);
+    backdrop-filter: blur(var(--tytd-glass-blur));
+    -webkit-backdrop-filter: blur(var(--tytd-glass-blur));
+    border-radius: 20px; /* More rounded */
+    box-shadow: var(--tytd-shadow);
     display: none;
     flex-direction: column;
     overflow: hidden;
-    animation: tytd-fade-in 0.2s ease-out;
-    border: 1px solid var(--tytd-border);
+    animation: tytd-pop-in 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    border: 1px solid var(--tytd-glass-border);
+    transition: top 0.3s cubic-bezier(0.25, 1, 0.5, 1), 
+                left 0.3s cubic-bezier(0.25, 1, 0.5, 1),
+                max-height 0.3s cubic-bezier(0.25, 1, 0.5, 1);
 }
-
-
 
 .tytd-menu.visible {
     display: flex;
 }
 
 .tytd-menu-header {
-    padding: 12px 16px;
-    background: var(--tytd-hover);
+    padding: 16px 20px;
+    background: transparent;
     border-bottom: 1px solid var(--tytd-border);
     font-weight: 600;
+    font-size: 15px;
     color: var(--tytd-text);
+    letter-spacing: -0.01em;
 }
 
 .tytd-todo-list {
     list-style: none;
     margin: 0;
     padding: 0;
-    max-height: 300px;
+    max-height: 320px;
     overflow-y: auto;
 }
 
@@ -158,103 +179,119 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 10px 16px;
+    padding: 12px 8px 12px 16px;
     border-bottom: 1px solid var(--tytd-border);
     font-size: 14px;
+    transition: background 0.2s;
+    margin: 4px 8px; /* Floating items inside */
+    border-radius: 12px;
+    cursor: grab;
+}
+
+.tytd-todo-item:hover {
+    background: var(--tytd-hover);
 }
 
 .tytd-todo-item:last-child {
-    border-bottom: none;
+    border-bottom: 1px solid var(--tytd-border);
+    margin-bottom: 4px;
 }
 
 .tytd-todo-text {
     flex: 1;
-    margin-right: 10px;
+    margin-right: 12px;
     color: var(--tytd-text);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
     min-width: 0;
-    /* Critical for flex truncation */
+    font-weight: 400;
 }
 
 .tytd-delete-btn,
 .tytd-done-btn,
 .tytd-edit-btn {
-    background: none;
+    background: rgba(128, 128, 128, 0.1);
     border: none;
     color: var(--tytd-text-secondary);
     cursor: pointer;
-    padding: 4px;
-    border-radius: 4px;
-    transition: color 0.2s, background 0.2s;
+    padding: 6px;
+    border-radius: 50%; /* Circular buttons */
+    transition: all 0.2s ease;
     display: flex;
     align-items: center;
     justify-content: center;
+    margin-left: 4px;
+    width: 28px;
+    height: 28px;
 }
 
 .tytd-edit-btn:hover {
-    color: var(--tytd-warning);
-    background: var(--tytd-warning-bg);
+    color: #ff9f0a;
+    background: rgba(255, 159, 10, 0.15);
 }
 
 .tytd-delete-btn:hover {
-    color: var(--tytd-danger);
-    background: var(--tytd-danger-bg);
+    color: #ff3b30;
+    background: rgba(255, 59, 48, 0.15);
 }
 
 .tytd-done-btn:hover {
-    color: var(--tytd-success);
-    background: var(--tytd-success-bg);
+    color: #34c759;
+    background: rgba(52, 199, 89, 0.15);
 }
 
 .tytd-add-btn {
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 12px;
-    background: var(--tytd-hover);
+    padding: 14px;
+    background: transparent;
     border: none;
     border-top: 1px solid var(--tytd-border);
     cursor: pointer;
-    font-weight: 500;
-    color: var(--tytd-text-secondary);
+    font-weight: 600;
+    color: var(--tytd-accent);
     transition: background 0.2s;
+    font-size: 14px;
 }
 
 .tytd-add-btn:hover {
-    background: var(--tytd-border);
-    color: var(--tytd-text);
+    background: var(--tytd-hover);
 }
 
-/* Dialog Overlay */
+/* Glass Dialog Overlay */
 .tytd-dialog-overlay {
     position: fixed;
     top: 0;
     left: 0;
     width: 100vw;
     height: 100vh;
-    background: rgba(0, 0, 0, 0.5);
+    background: rgba(0, 0, 0, 0.2);
+    backdrop-filter: blur(5px);
     z-index: 1000000;
     display: none;
     align-items: center;
     justify-content: center;
-    animation: tytd-fade-in 0.2s;
+    animation: tytd-fade-in 0.3s ease;
 }
 
 .tytd-dialog-overlay.visible {
     display: flex;
 }
 
-/* Dialog Box */
+/* Glass Dialog Box */
 .tytd-dialog {
     background: var(--tytd-bg);
-    padding: 24px;
-    border-radius: 12px;
-    width: 320px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(30px);
+    -webkit-backdrop-filter: blur(30px);
+    padding: 28px;
+    border-radius: 24px;
+    width: 340px;
+    box-shadow: var(--tytd-shadow);
+    border: 1px solid var(--tytd-glass-border);
     transform: scale(0.9);
-    transition: transform 0.2s;
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .tytd-dialog-overlay.visible .tytd-dialog {
@@ -262,66 +299,122 @@
 }
 
 .tytd-dialog h3 {
-    margin: 0 0 16px 0;
+    margin: 0 0 20px 0;
     color: var(--tytd-text);
+    font-size: 18px;
+    font-weight: 600;
+    text-align: center;
 }
 
+/* Input/Textarea */
 .tytd-input {
     width: 100%;
-    padding: 10px;
+    padding: 12px;
     border: 1px solid var(--tytd-input-border);
     background: var(--tytd-input-bg);
     color: var(--tytd-text);
-    border-radius: 6px;
-    margin-bottom: 16px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+    font-family: inherit;
+    font-size: 15px;
+    resize: vertical;
+    min-height: 44px;
     box-sizing: border-box;
-    font-size: 14px;
+    transition: all 0.2s;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
 }
 
 .tytd-input:focus {
-    border-color: var(--tytd-accent);
     outline: none;
+    border-color: var(--tytd-accent);
+    background: var(--tytd-bg);
+    box-shadow: 0 0 0 4px rgba(0, 122, 255, 0.15);
 }
 
+textarea.tytd-input {
+    min-height: 100px;
+}
+
+/* Buttons */
 .tytd-dialog-actions {
     display: flex;
-    justify-content: flex-end;
-    gap: 8px;
+    justify-content: stretch;
+    gap: 12px;
 }
 
 .tytd-btn {
-    padding: 8px 16px;
-    border-radius: 6px;
+    padding: 12px 20px;
+    border-radius: 12px;
     border: none;
     cursor: pointer;
-    font-size: 14px;
-    font-weight: 500;
+    font-size: 15px;
+    font-weight: 600;
+    flex: 1;
+    transition: transform 0.1s, opacity 0.2s;
+}
+
+.tytd-btn:active {
+    transform: scale(0.96);
 }
 
 .tytd-btn-cancel {
-    background: var(--tytd-hover);
-    color: var(--tytd-text-secondary);
+    background: rgba(128, 128, 128, 0.15);
+    color: var(--tytd-text);
 }
 
 .tytd-btn-cancel:hover {
-    background: var(--tytd-border);
+    background: rgba(128, 128, 128, 0.25);
 }
 
 .tytd-btn-primary {
     background: var(--tytd-accent);
+    background: var(--tytd-accent-gradient);
     color: white;
+    box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
 }
 
 .tytd-btn-primary:hover {
-    background: #5b7add;
+    opacity: 0.9;
+    box-shadow: 0 6px 16px rgba(0, 122, 255, 0.4);
 }
 
-@keyframes tytd-fade-in {
-    from {
-        opacity: 0;
-    }
+/* Drag and Drop Visuals */
+.tytd-todo-item.dragging {
+    opacity: 0.6;
+    background: var(--tytd-hover);
+    transform: scale(0.98);
+    cursor: grabbing;
+}
 
-    to {
+.tytd-todo-item.drag-over-top {
+    border-top: 2px solid var(--tytd-accent);
+    background: rgba(0, 122, 255, 0.05);
+}
+
+.tytd-todo-item.drag-over-bottom {
+    border-bottom: 2px solid var(--tytd-accent);
+    background: rgba(0, 122, 255, 0.05);
+}
+
+/* Auto-hide */
+.tytd-hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* Animations */
+@keyframes tytd-fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes tytd-pop-in {
+    from { 
+        opacity: 0;
+        transform: scale(0.9) translateY(10px);
+    }
+    to { 
         opacity: 1;
+        transform: scale(1) translateY(0);
     }
 }
