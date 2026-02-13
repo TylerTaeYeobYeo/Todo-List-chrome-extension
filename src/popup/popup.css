@@ -15,6 +15,7 @@
   --popup-del-btn-text: #ff3b30;
   --popup-accent: #AF52DE;
   --popup-hover: rgba(0,0,0,0.05);
+  --popup-table-row-bg: #eeeeee;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -31,6 +32,7 @@
     --popup-del-btn-bg: rgba(255, 69, 58, 0.2);
     --popup-del-btn-text: #ff453a;
     --popup-hover: rgba(255,255,255,0.1);
+    --popup-table-row-bg: #1a1919;
   }
 }
 
@@ -47,6 +49,7 @@
     --popup-del-btn-bg: rgba(255, 69, 58, 0.2);
     --popup-del-btn-text: #ff453a;
     --popup-hover: rgba(255,255,255,0.1);
+    --popup-table-row-bg: #2c2c2e;
 }
 
 .tytd-theme-light {
@@ -62,10 +65,11 @@
     --popup-del-btn-bg: rgba(255, 59, 48, 0.1);
     --popup-del-btn-text: #ff3b30;
     --popup-hover: rgba(0,0,0,0.05);
+    --popup-table-row-bg: #eeeeee
 }
 
 body {
-  width: 350px;
+  width: 440px;
   padding: 16px;
   font-family: 'Pretendard', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   background-color: var(--popup-bg);
@@ -83,47 +87,43 @@ h3 {
   letter-spacing: 0.5px;
 }
 
-/* Glassy Selector */
-#theme-selector {
-  width: 100%;
-  padding: 10px;
-  border-radius: 12px;
-  border: 1px solid var(--popup-selector-border);
+/* Theme Buttons */
+.theme-buttons-container {
+  display: flex;
   background-color: var(--popup-selector-bg);
-  color: var(--popup-text);
-  outline: none;
-  font-family: inherit;
-  font-size: 14px;
-  appearance: none;
-  background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23888%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
-  background-repeat: no-repeat;
-  background-position: right 12px top 50%;
-  background-size: 10px auto;
+  padding: 4px;
+  border-radius: 12px;
+  gap: 4px;
+  border: 1px solid var(--popup-selector-border);
+}
+
+.theme-btn {
+  flex: 1;
+  border: none;
+  background: transparent;
+  padding: 8px;
+  border-radius: 8px;
   cursor: pointer;
+  color: var(--popup-text-secondary);
   transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-#theme-selector option {
-    background-color: var(--popup-bg);
-    color: var(--popup-text);
+.theme-btn:hover {
+  background-color: var(--popup-hover);
+  color: var(--popup-text);
 }
 
-#theme-selector:hover {
-    background-color: var(--popup-hover);
-}
-
-#theme-selector:focus {
-    border-color: var(--popup-accent);
-    box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.15);
+.theme-btn.active {
+  background-color: var(--popup-bg); /* Use main bg to pop out */
+  color: var(--popup-accent);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 
 .done-tasks-section {
   margin-top: 24px;
-}
-
-.done-list-container {
-  border-radius: 12px;
-  overflow: hidden;
 }
 
 .done-list-container {
@@ -133,14 +133,14 @@ h3 {
   overflow-x: hidden;
   border-radius: 12px;
   background: var(--popup-selector-bg);
-  display: flex;
+  display: flex; /* Ensure it behaves like a container */
 }
 
 #done-todo-table {
   flex: 1;
   width: 100%;
   border-collapse: separate;
-  border-spacing: 0px; /* Spacing between rows */
+  border-spacing: 0px; 
   font-size: 13px;
 }
 
@@ -151,22 +151,37 @@ h3 {
 #done-todo-table th {
   text-align: left;
   border-bottom: 1px solid var(--popup-border);
-  padding: 8px 12px;
+  padding: 8px 16px;
   color: var(--popup-text-header);
   font-weight: 600;
   font-size: 12px;
   position: sticky;
   top: 0;
-  background-color: var(--popup-selector-bg); /* Use selector bg to match container or just opaque */
+  background-color: var(--popup-selector-bg); 
   backdrop-filter: blur(10px);
   z-index: 10;
+  height: 24px;
 }
 
 #done-todo-table td {
   padding: 10px 12px;
-  background: var(--popup-bg); /* Cards inside list */
-  first-child { border-top-left-radius: 8px; border-bottom-left-radius: 8px; }
-  last-child { border-top-right-radius: 8px; border-bottom-right-radius: 8px; }
+  background: var(--popup-table-row-bg); 
+  border-bottom: none; /* Let spacing handle separation visual */
+  /* Remove individual borders since we use spacing/cards */
+}
+
+/* Pseudo-borders via spacing is tricky, let's keep it simple: 
+   Actually with border-spacing: 0, we can use borders. 
+   But the user might want "cards". Let's try adding margin to rows? 
+   Tables can't margin rows easily. 
+   Let's stick to simple list style for now but with refined spacing. 
+*/
+
+#done-todo-table td {
+  border-bottom: 1px solid var(--popup-border-table);
+}
+
+#done-todo-table tr:last-child td {
   border-bottom: none;
 }
 
