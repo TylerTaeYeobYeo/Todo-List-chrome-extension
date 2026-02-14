@@ -7,14 +7,14 @@
   --popup-text-secondary: #86868b;
   --popup-text-muted: #d2d2d7;
   --popup-text-header: #86868b;
-  --popup-border: rgba(0,0,0,0.05);
-  --popup-border-table: rgba(0,0,0,0.05);
-  --popup-selector-border: rgba(0,0,0,0.1);
-  --popup-selector-bg: rgba(0,0,0,0.02);
+  --popup-border: rgba(0, 0, 0, 0.05);
+  --popup-border-table: rgba(0, 0, 0, 0.05);
+  --popup-selector-border: rgba(0, 0, 0, 0.1);
+  --popup-selector-bg: rgba(0, 0, 0, 0.02);
   --popup-del-btn-bg: rgba(255, 59, 48, 0.1);
   --popup-del-btn-text: #ff3b30;
   --popup-accent: #AF52DE;
-  --popup-hover: rgba(0,0,0,0.05);
+  --popup-hover: rgba(0, 0, 0, 0.05);
   --popup-table-row-bg: #eeeeee;
 }
 
@@ -25,47 +25,51 @@
     --popup-text-secondary: #86868b;
     --popup-text-muted: #424245;
     --popup-text-header: #86868b;
-    --popup-border: rgba(255,255,255,0.1);
-    --popup-border-table: rgba(255,255,255,0.05);
-    --popup-selector-border: rgba(255,255,255,0.1);
-    --popup-selector-bg: rgba(255,255,255,0.05);
+    --popup-border: rgba(255, 255, 255, 0.1);
+    --popup-border-table: rgba(255, 255, 255, 0.05);
+    --popup-selector-border: rgba(255, 255, 255, 0.1);
+    --popup-selector-bg: rgba(255, 255, 255, 0.05);
     --popup-del-btn-bg: rgba(255, 69, 58, 0.2);
     --popup-del-btn-text: #ff453a;
-    --popup-hover: rgba(255,255,255,0.1);
+    --popup-hover: rgba(255, 255, 255, 0.1);
     --popup-table-row-bg: #1a1919;
   }
 }
 
 .tytd-theme-dark {
-    --popup-bg: #1e1e1e;
-    --popup-text: #f5f5f7;
-    --popup-text-secondary: #86868b;
-    --popup-text-muted: #424245;
-    --popup-text-header: #86868b;
-    --popup-border: rgba(255,255,255,0.1);
-    --popup-border-table: rgba(255,255,255,0.05);
-    --popup-selector-border: rgba(255,255,255,0.1);
-    --popup-selector-bg: rgba(255,255,255,0.05);
-    --popup-del-btn-bg: rgba(255, 69, 58, 0.2);
-    --popup-del-btn-text: #ff453a;
-    --popup-hover: rgba(255,255,255,0.1);
-    --popup-table-row-bg: #2c2c2e;
+  --popup-bg: #1e1e1e;
+  --popup-text: #f5f5f7;
+  --popup-text-secondary: #86868b;
+  --popup-text-muted: #424245;
+  --popup-text-header: #86868b;
+  --popup-border: rgba(255, 255, 255, 0.1);
+  --popup-border-table: rgba(255, 255, 255, 0.05);
+  --popup-selector-border: rgba(255, 255, 255, 0.1);
+  --popup-selector-bg: rgba(255, 255, 255, 0.05);
+  --popup-del-btn-bg: rgba(255, 69, 58, 0.2);
+  --popup-del-btn-text: #ff453a;
+  --popup-hover: rgba(255, 255, 255, 0.1);
+  --popup-table-row-bg: #2c2c2e;
 }
 
 .tytd-theme-light {
-    --popup-bg: #f2f2f7;
-    --popup-text: #1d1d1f;
-    --popup-text-secondary: #86868b;
-    --popup-text-muted: #d2d2d7;
-    --popup-text-header: #86868b;
-    --popup-border: rgba(0,0,0,0.05);
-    --popup-border-table: rgba(0,0,0,0.05);
-    --popup-selector-border: rgba(0,0,0,0.1);
-    --popup-selector-bg: rgba(0,0,0,0.02);
-    --popup-del-btn-bg: rgba(255, 59, 48, 0.1);
-    --popup-del-btn-text: #ff3b30;
-    --popup-hover: rgba(0,0,0,0.05);
-    --popup-table-row-bg: #eeeeee
+  --popup-bg: #f2f2f7;
+  --popup-text: #1d1d1f;
+  --popup-text-secondary: #86868b;
+  --popup-text-muted: #d2d2d7;
+  --popup-text-header: #86868b;
+  --popup-border: rgba(0, 0, 0, 0.05);
+  --popup-border-table: rgba(0, 0, 0, 0.05);
+  --popup-selector-border: rgba(0, 0, 0, 0.1);
+  --popup-selector-bg: rgba(0, 0, 0, 0.02);
+  --popup-del-btn-bg: rgba(255, 59, 48, 0.1);
+  --popup-del-btn-text: #ff3b30;
+  --popup-hover: rgba(0, 0, 0, 0.05);
+  --popup-table-row-bg: #eeeeee
+}
+
+.flex {
+  display: flex;
 }
 
 body {
@@ -117,13 +121,37 @@ h3 {
 }
 
 .theme-btn.active {
-  background-color: var(--popup-bg); /* Use main bg to pop out */
+  background-color: var(--popup-bg);
+  /* Use main bg to pop out */
   color: var(--popup-accent);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .done-tasks-section {
   margin-top: 24px;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.icon-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--popup-text-secondary);
+  padding: 4px;
+  border-radius: 4px;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.icon-btn:hover {
+  background-color: var(--popup-hover);
+  color: var(--popup-text);
 }
 
 .done-list-container {
@@ -133,19 +161,14 @@ h3 {
   overflow-x: hidden;
   border-radius: 12px;
   background: var(--popup-selector-bg);
-  display: flex; /* Ensure it behaves like a container */
 }
 
 #done-todo-table {
   flex: 1;
   width: 100%;
   border-collapse: separate;
-  border-spacing: 0px; 
+  border-spacing: 0px;
   font-size: 13px;
-}
-
-#done-todo-table tbody {
-  vertical-align: baseline;
 }
 
 #done-todo-table th {
@@ -157,7 +180,7 @@ h3 {
   font-size: 12px;
   position: sticky;
   top: 0;
-  background-color: var(--popup-selector-bg); 
+  background-color: var(--popup-selector-bg);
   backdrop-filter: blur(10px);
   z-index: 10;
   height: 24px;
@@ -165,8 +188,9 @@ h3 {
 
 #done-todo-table td {
   padding: 10px 12px;
-  background: var(--popup-table-row-bg); 
-  border-bottom: none; /* Let spacing handle separation visual */
+  background: var(--popup-table-row-bg);
+  border-bottom: none;
+  /* Let spacing handle separation visual */
   /* Remove individual borders since we use spacing/cards */
 }
 
@@ -220,18 +244,18 @@ h3 {
 
 /* Scrollbar Styling */
 ::-webkit-scrollbar {
-    width: 8px;
+  width: 8px;
 }
 
 ::-webkit-scrollbar-track {
-    background: transparent; 
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-    background: var(--popup-border); 
-    border-radius: 10px;
+  background: var(--popup-border);
+  border-radius: 10px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    background: var(--popup-text-secondary); 
+  background: var(--popup-text-secondary);
 }
