@@ -288,3 +288,27 @@ function formatDateForCSV(dateStr?: string): string {
     
     return `${yyyy}-${mm}-${dd} ${hh}:${min}:${ss}`;
 }
+
+// --- Tab Switching ---
+
+const tabBtns = document.querySelectorAll(".tab-btn");
+const tabContents = document.querySelectorAll(".tab-content");
+
+tabBtns.forEach(btn => {
+    btn.addEventListener("click", () => {
+        const targetId = (btn as HTMLElement).dataset.tab;
+
+        // Update buttons
+        tabBtns.forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+
+        // Update content
+        tabContents.forEach(content => {
+            if (content.id === targetId) {
+                content.classList.add("active");
+            } else {
+                content.classList.remove("active");
+            }
+        });
+    });
+});
