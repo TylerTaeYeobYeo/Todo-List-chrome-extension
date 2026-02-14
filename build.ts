@@ -34,6 +34,7 @@ await copyFile("manifest.json", join(distDir, "manifest.json"));
 await copyFile("src/popup/popup.html", join(distDir, "popup", "popup.html"));
 await copyFile("src/popup/popup.css", join(distDir, "popup", "popup.css"));
 await copyFile("src/content.css", join(distDir, "content.css"));
+await copyFile("sample_tasks.csv", join(distDir, "sample_tasks.csv"));
 
 // Copy icons
 const iconsDir = join(distDir, "icons");

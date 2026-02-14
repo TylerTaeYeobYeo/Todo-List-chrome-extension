@@ -594,12 +594,7 @@ function renderTodos() {
     `;
         doneBtn.addEventListener("click", async () => {
             todo.completed = true;
-            todo.completedAt = new Date().toLocaleString([], {
-                month: 'short',
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
-            });
+            todo.completedAt = new Date().toISOString();
             await saveTodos();
         });
 
