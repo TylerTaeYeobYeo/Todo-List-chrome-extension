@@ -210,8 +210,8 @@ h3 {
 }
 
 .done-todo-text {
-  text-decoration: line-through;
-  color: var(--popup-text-muted);
+  text-decoration: none;
+  color: var(--popup-text);
   word-break: break-all;
   max-width: 180px;
   white-space: nowrap;
@@ -258,4 +258,51 @@ h3 {
 
 ::-webkit-scrollbar-thumb:hover {
   background: var(--popup-text-secondary);
+}
+
+/* Tabs */
+.tabs {
+  display: flex;
+  background: var(--popup-selector-bg);
+  padding: 4px;
+  border-radius: 12px;
+  margin-bottom: 16px;
+  gap: 4px;
+}
+
+.tab-btn {
+  flex: 1;
+  border: none;
+  background: transparent;
+  padding: 8px;
+  border-radius: 8px;
+  cursor: pointer;
+  color: var(--popup-text-secondary);
+  font-weight: 600;
+  font-size: 13px;
+  transition: all 0.2s;
+}
+
+.tab-btn:hover {
+  color: var(--popup-text);
+}
+
+.tab-btn.active {
+  background-color: var(--popup-bg);
+  color: var(--popup-text);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.tab-content {
+  display: none;
+  animation: fadeIn 0.2s ease-in-out;
+}
+
+.tab-content.active {
+  display: block;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
 }
