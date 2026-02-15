@@ -32,10 +32,10 @@ const STORAGE_POS_KEY = "tytd_bubble_pos";
 
 async function init() {
     injectStyles();
-    await applySavedTheme();
     await createBubble();
     createMenu();
     createDialog();
+    await applySavedTheme();
     setupListeners();
     await loadTodos();
 }
