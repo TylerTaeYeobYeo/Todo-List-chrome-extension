@@ -47,6 +47,7 @@ async function loadAndRenderDoneTodos() {
         const deleteBtn = document.createElement("button");
         deleteBtn.innerHTML = `&times;`;
         deleteBtn.className = "popup-delete-btn";
+        deleteBtn.title = "Delete Task";
         deleteBtn.addEventListener("click", async () => {
             await deleteTodo(todo.id);
         });

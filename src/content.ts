@@ -89,6 +89,7 @@ async function createBubble() {
 
     bubble = document.createElement("div");
     bubble.className = "tytd-bubble";
+    bubble.title = "Toggle Tasks";
     // Lightning bolt SVG
     bubble.innerHTML = `
     <svg class="tytd-bubble-icon" viewBox="0 0 24 24">
@@ -160,6 +161,7 @@ function createMenu() {
 
     const addButton = document.createElement("button");
     addButton.className = "tytd-add-btn";
+    addButton.title = "Add New Task";
     addButton.innerHTML = `
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
       <line x1="12" y1="5" x2="12" y2="19"></line>
@@ -587,6 +589,7 @@ function renderTodos() {
 
         const doneBtn = document.createElement("button");
         doneBtn.className = "tytd-done-btn";
+        doneBtn.title = "Mark as Done";
         doneBtn.innerHTML = `
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <polyline points="20 6 9 17 4 12"></polyline>
@@ -600,6 +603,7 @@ function renderTodos() {
 
         const editBtn = document.createElement("button");
         editBtn.className = "tytd-edit-btn";
+        editBtn.title = "Edit Task";
         editBtn.innerHTML = `
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
@@ -613,6 +617,7 @@ function renderTodos() {
 
         const deleteBtn = document.createElement("button");
         deleteBtn.className = "tytd-delete-btn";
+        deleteBtn.title = "Delete Task";
         deleteBtn.innerHTML = `
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <line x1="18" y1="6" x2="6" y2="18"></line>
