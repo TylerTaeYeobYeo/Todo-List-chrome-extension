@@ -47,6 +47,7 @@ async function loadAndRenderDoneTodos() {
         const deleteBtn = document.createElement("button");
         deleteBtn.innerHTML = `&times;`;
         deleteBtn.className = "popup-delete-btn";
+        deleteBtn.title = "Delete Task";
         deleteBtn.addEventListener("click", async () => {
             await deleteTodo(todo.id);
         });
@@ -126,7 +127,7 @@ const downloadSampleBtn = document.getElementById("download-sample-btn");
 const fileInput = document.getElementById("import-file") as HTMLInputElement;
 
 if (exportBtn) {
-    exportBtn.addEventListener("click", exportDoneTodos);
+    exportBtn.addEventListener("click", exportTodos);
 }
 
 if (downloadSampleBtn) {
@@ -157,19 +158,28 @@ if (fileInput) {
     });
 }
 
-async function exportDoneTodos() {
+async function exportTodos() {
     const result = await chrome.storage.sync.get([STORAGE_KEY]);
     const todos: Todo[] = (result[STORAGE_KEY] as Todo[]) || [];
-    const doneTodos = todos.filter(t => t.completed);
-
-    if (doneTodos.length === 0) {
-        alert("No completed tasks to export.");
+    
+    if (todos.length === 0) {
+        alert("No tasks to export.");
         return;
     }
+
+    const doneTodos = todos.filter(t => t.completed);
+    const undoneTodos = todos.filter(t => !t.completed);
 
     // CSV Header
     let csvContent = "Task,FinishedAt,Done\n";
 
+    // 1. Undone Todos
+    undoneTodos.forEach(todo => {
+        const safeText = `"${todo.text.replace(/"/g, '""')}"`;
+        csvContent += `${safeText},"",false\n`;
+    });
+
+    // 2. Done Todos
     doneTodos.forEach(todo => {
         // Escape quotes in task text
         const safeText = `"${todo.text.replace(/"/g, '""')}"`;

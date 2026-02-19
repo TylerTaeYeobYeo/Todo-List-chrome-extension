@@ -15,9 +15,9 @@
     --tytd-glass-blur: 20px;
     
     /* Vibrant Gradients - Purplish Theme */
-    --tytd-accent: #AF52DE;
-    --tytd-accent-gradient: linear-gradient(135deg, #DA8FFF, #9A50FF);
-    --tytd-bubble-gradient: linear-gradient(135deg, #5E5CE6, #BF5AF2, #AC8E68, #FF375F); /* Liquid Purple/Pink mix */
+    --tytd-accent: #8EA6FA;
+    --tytd-accent-gradient: linear-gradient(135deg, #8EA6FA, #C095FA);
+    --tytd-bubble-gradient: linear-gradient(135deg, #8EA6FA, #C095FA); /* Soft Blue-Purple from image */
 
     --tytd-danger: #ff3b30;
     --tytd-danger-bg: rgba(255, 59, 48, 0.1);
