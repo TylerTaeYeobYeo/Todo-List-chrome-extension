@@ -2,7 +2,7 @@ console.log("Background script running");
 
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "./firebase/config";
-import { pullTasksFromCloud, syncTasksToCloud, Todo } from "./firebase/sync";
+import { ensureUserDocument, pullTasksFromCloud, syncTasksToCloud, Todo } from "./firebase/sync";
 
 const STORAGE_KEY = "bun_todos";
 
@@ -13,7 +13,8 @@ chrome.runtime.onInstalled.addListener(() => {
 // Watch for authentication state changes
 onAuthStateChanged(auth, async (user) => {
   if (user) {
-    console.log("User logged in, syncing tasks from cloud...");
+    console.log("User logged in, ensuring profile and syncing tasks...");
+    await ensureUserDocument(user.uid);
     const cloudTodos = await pullTasksFromCloud(user.uid);
     if (cloudTodos) {
       // Current simple strategy: overwrite local with cloud. 

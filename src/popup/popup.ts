@@ -326,6 +326,7 @@ tabBtns.forEach(btn => {
 // --- Firebase Auth UI Logic ---
 import { GoogleAuthProvider, onAuthStateChanged, signInWithCredential, signOut } from "firebase/auth";
 import { auth } from "../firebase/config";
+import { isUserPro } from "../firebase/sync";
 
 const loggedOutView = document.getElementById("logged-out-view")!;
 const loggedInView = document.getElementById("logged-in-view")!;
@@ -334,16 +335,30 @@ const authLogoutBtn = document.getElementById("auth-logout-btn")!;
 const authUserEmailDisplay = document.getElementById("auth-user-email")!;
 const authErrorDisplay = document.getElementById("auth-error")!;
 
-function updateAuthUI(user: any) {
+async function updateAuthUI(user: any) {
     if (user) {
         loggedOutView.style.display = "none";
         loggedInView.style.display = "block";
         authUserEmailDisplay.textContent = user.email;
         authErrorDisplay.style.display = "none";
+        
+        const proStatus = await isUserPro(user.uid);
+        if (proStatus) {
+            document.getElementById("free-tier-view")!.style.display = "none";
+            document.getElementById("pro-tier-view")!.style.display = "block";
+        } else {
+            document.getElementById("free-tier-view")!.style.display = "block";
+            document.getElementById("pro-tier-view")!.style.display = "none";
+        }
     } else {
         loggedOutView.style.display = "block";
         loggedInView.style.display = "none";
         authUserEmailDisplay.textContent = "";
+        
+        const freeTier = document.getElementById("free-tier-view");
+        if (freeTier) freeTier.style.display = "none";
+        const proTier = document.getElementById("pro-tier-view");
+        if (proTier) proTier.style.display = "none";
     }
 }
 
@@ -397,4 +412,9 @@ authLogoutBtn.addEventListener("click", async () => {
 // For initial load without UI interaction, just in case
 chrome.identity.getProfileUserInfo((userInfo) => {
     // We could use userInfo here if needed, but Firebase onAuthStateChanged usually handles the UI state.
+});
+
+document.getElementById("upgrade-pro-btn")?.addEventListener("click", () => {
+    // Open a Stripe Checkout Link (Placeholder URL for now)
+    chrome.tabs.create({ url: "https://buy.stripe.com/test_placeholder" });
 });
