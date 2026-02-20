@@ -61,6 +61,26 @@
   </div>
 
   <div id="tab-settings" class="tab-content">
+    <h3>Account (Cloud Sync)</h3>
+    <div class="auth-section" style="margin-bottom: 20px; padding: 10px; background: rgba(0,0,0,0.05); border-radius: 6px;">
+      <div id="logged-out-view">
+        <button id="auth-google-btn" style="width: 100%; padding: 8px; cursor: pointer; background: white; color: #444; border: 1px solid #ccc; border-radius: 4px; display: flex; align-items: center; justify-content: center; gap: 8px; font-weight: 500;">
+          <svg style="width: 18px; height: 18px;" viewBox="0 0 24 24">
+            <path fill="#ea4335" d="M5.266 9.765A7.077 7.077 0 0112 4.909c1.69 0 3.218.6 4.418 1.582L19.91 3C17.782 1.145 15.055 0 12 0 7.27 0 3.197 2.698 1.24 6.65l4.026 3.115z"/>
+            <path fill="#34a853" d="M16.04 18.013c-1.09.703-2.474 1.078-4.04 1.078a7.077 7.077 0 01-6.723-4.806l-4.04 3.127C3.197 21.302 7.27 24 12 24c3.24 0 5.966-1.08 7.962-2.916l-3.922-3.071z"/>
+            <path fill="#4a90e2" d="M19.962 21.084C22.045 19.14 23.415 16.14 23.415 12.443c0-.85-.084-1.66-.232-2.443H12v4.619h6.634c-.308 1.62-1.282 2.99-2.67 3.842l3.998 2.623z"/>
+            <path fill="#fbbc05" d="M5.277 14.268A7.12 7.12 0 014.909 12c0-.782.125-1.533.357-2.235L1.24 6.65A11.934 11.934 0 000 12c0 1.92.445 3.73 1.237 5.335l4.04-3.067z"/>
+          </svg>
+          Sign in with Google
+        </button>
+        <div id="auth-error" style="color: #ef4444; font-size: 12px; margin-top: 8px; display: none;"></div>
+      </div>
+      <div id="logged-in-view" style="display: none;">
+        <div style="margin-bottom: 8px; font-size: 13px;">Logged in as:<br><strong id="auth-user-email"></strong></div>
+        <button id="auth-logout-btn" style="width: 100%; padding: 6px; cursor: pointer; background: #ef4444; color: white; border: none; border-radius: 4px;">Logout</button>
+      </div>
+    </div>
+
     <h3>Theme</h3>
     <div class="theme-buttons-container">
       <button class="theme-btn" data-theme="system" title="System Theme">

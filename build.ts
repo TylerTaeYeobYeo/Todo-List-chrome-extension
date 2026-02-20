@@ -17,6 +17,14 @@ const result = await build({
     outdir: "./dist",
     target: "browser",
     minify: false, // Set to true for production
+    define: {
+        ...Object.keys(process.env)
+            .filter(key => key.startsWith("FIREBASE_"))
+            .reduce((acc, curr) => ({
+                ...acc,
+                [`process.env.${curr}`]: JSON.stringify(process.env[curr] || "")
+            }), {}),
+    }
 });
 
 if (!result.success) {
@@ -28,9 +36,14 @@ if (!result.success) {
     console.log("Build successful");
 }
 
-// 3. Copy static files
-console.log("Copying static files...");
-await copyFile("manifest.json", join(distDir, "manifest.json"));
+// 3. Copy static files & build manifest
+console.log("Building manifest and copying static files...");
+const manifestTemplate = await Bun.file("manifest.template.json").text();
+const finalManifest = manifestTemplate.replace(
+    '"YOUR_OAUTH_CLIENT_ID_HERE"',
+    `"${process.env.GOOGLE_OAUTH || ""}"`
+);
+await Bun.write(join(distDir, "manifest.json"), finalManifest);
 await copyFile("src/popup/popup.html", join(distDir, "popup", "popup.html"));
 await copyFile("src/popup/popup.css", join(distDir, "popup", "popup.css"));
 await copyFile("src/content.css", join(distDir, "content.css"));

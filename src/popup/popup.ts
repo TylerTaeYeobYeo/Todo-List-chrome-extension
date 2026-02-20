@@ -322,3 +322,79 @@ tabBtns.forEach(btn => {
         });
     });
 });
+
+// --- Firebase Auth UI Logic ---
+import { GoogleAuthProvider, onAuthStateChanged, signInWithCredential, signOut } from "firebase/auth";
+import { auth } from "../firebase/config";
+
+const loggedOutView = document.getElementById("logged-out-view")!;
+const loggedInView = document.getElementById("logged-in-view")!;
+const authGoogleBtn = document.getElementById("auth-google-btn")!;
+const authLogoutBtn = document.getElementById("auth-logout-btn")!;
+const authUserEmailDisplay = document.getElementById("auth-user-email")!;
+const authErrorDisplay = document.getElementById("auth-error")!;
+
+function updateAuthUI(user: any) {
+    if (user) {
+        loggedOutView.style.display = "none";
+        loggedInView.style.display = "block";
+        authUserEmailDisplay.textContent = user.email;
+        authErrorDisplay.style.display = "none";
+    } else {
+        loggedOutView.style.display = "block";
+        loggedInView.style.display = "none";
+        authUserEmailDisplay.textContent = "";
+    }
+}
+
+function showAuthError(message: string) {
+    authErrorDisplay.textContent = message;
+    authErrorDisplay.style.display = "block";
+}
+
+onAuthStateChanged(auth, (user) => {
+    updateAuthUI(user);
+});
+
+authGoogleBtn.addEventListener("click", async () => {
+    try {
+        // 1. Get an OAuth2 token from Chrome
+        const { token } = await chrome.identity.getAuthToken({ interactive: true });
+        
+        if (!token) {
+            throw new Error("Failed to get OAuth token from Chrome");
+        }
+
+        // 2. Create a Firebase credential with the token
+        const credential = GoogleAuthProvider.credential(null, token);
+
+        // 3. Sign in to Firebase with the credential
+        await signInWithCredential(auth, credential);
+
+    } catch (error: any) {
+        console.error("Google Sign-In Error", error);
+        showAuthError(error.message || "Failed to sign in with Google.");
+    }
+});
+
+authLogoutBtn.addEventListener("click", async () => {
+    try {
+        // 1. Sign out of Firebase
+        await signOut(auth);
+
+        // 2. Remove the cached Chrome auth token so the user can sign in with a different account next time if they want
+        const { token } = await chrome.identity.getAuthToken({ interactive: false });
+        if (token) {
+            await chrome.identity.removeCachedAuthToken({ token });
+            // Optionally, revoke the token to completely disconnect the app from the user's account
+            // await fetch(`https://accounts.google.com/o/oauth2/revoke?token=${token}`);
+        }
+    } catch (error: any) {
+        console.error("Logout Error", error);
+    }
+});
+
+// For initial load without UI interaction, just in case
+chrome.identity.getProfileUserInfo((userInfo) => {
+    // We could use userInfo here if needed, but Firebase onAuthStateChanged usually handles the UI state.
+});
