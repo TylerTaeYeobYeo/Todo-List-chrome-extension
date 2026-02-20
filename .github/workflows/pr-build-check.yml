@@ -23,4 +23,13 @@ jobs:
         run: bun install
 
       - name: Run Build
+        env:
+          FIREBASE_apiKey: ${{ secrets.FIREBASE_APIKEY }}
+          FIREBASE_authDomain: ${{ secrets.FIREBASE_AUTHDOMAIN }}
+          FIREBASE_projectId: ${{ secrets.FIREBASE_PROJECTID }}
+          FIREBASE_storageBucket: ${{ secrets.FIREBASE_STORAGEBUCKET }}
+          FIREBASE_messagingSenderId: ${{ secrets.FIREBASE_MESSAGINGSENDERID }}
+          FIREBASE_appId: ${{ secrets.FIREBASE_APPID }}
+          FIREBASE_measurementId: ${{ secrets.FIREBASE_MEASUREMENTID }}
+          GOOGLE_OAUTH: ${{ secrets.GOOGLE_OAUTH }}
         run: bun run build

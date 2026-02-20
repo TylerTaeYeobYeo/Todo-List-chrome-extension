@@ -27,11 +27,11 @@ jobs:
       - name: Check Version Change
         id: check
         run: |
-          NEW_VERSION=$(bun -e "console.log(JSON.parse(require('fs').readFileSync('manifest.json', 'utf8')).version)")
+          NEW_VERSION=$(bun -e "console.log(JSON.parse(require('fs').readFileSync('manifest.template.json', 'utf8')).version)")
           
           # Try to get the previous version. If it's the first commit, fallback to an empty version.
           if git rev-parse HEAD^1 >/dev/null 2>&1; then
-            OLD_VERSION=$(git show HEAD^1:manifest.json | bun -e "console.log(JSON.parse(require('fs').readFileSync(0, 'utf8')).version)")
+            OLD_VERSION=$(git show HEAD^1:manifest.template.json | bun -e "console.log(JSON.parse(require('fs').readFileSync(0, 'utf8')).version)")
           else
             OLD_VERSION="0.0"
           fi
@@ -52,6 +52,15 @@ jobs:
 
       - name: Build Extension
         if: steps.check.outputs.changed == 'true'
+        env:
+          FIREBASE_apiKey: ${{ secrets.FIREBASE_APIKEY }}
+          FIREBASE_authDomain: ${{ secrets.FIREBASE_AUTHDOMAIN }}
+          FIREBASE_projectId: ${{ secrets.FIREBASE_PROJECTID }}
+          FIREBASE_storageBucket: ${{ secrets.FIREBASE_STORAGEBUCKET }}
+          FIREBASE_messagingSenderId: ${{ secrets.FIREBASE_MESSAGINGSENDERID }}
+          FIREBASE_appId: ${{ secrets.FIREBASE_APPID }}
+          FIREBASE_measurementId: ${{ secrets.FIREBASE_MEASUREMENTID }}
+          GOOGLE_OAUTH: ${{ secrets.GOOGLE_OAUTH }}
         run: bun run build
 
       - name: Upload Artifact
@@ -67,7 +76,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           VERSION="${{ steps.check.outputs.version }}"
-          DESCRIPTION=$(bun -e "console.log(JSON.parse(require('fs').readFileSync('manifest.json', 'utf8')).description)")
+          DESCRIPTION=$(bun -e "console.log(JSON.parse(require('fs').readFileSync('manifest.template.json', 'utf8')).description)")
           
           # Get previous tag to generate changelog
           PREV_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
