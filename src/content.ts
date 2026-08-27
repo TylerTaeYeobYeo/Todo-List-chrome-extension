@@ -10,6 +10,7 @@ interface Todo {
 // State
 let todos: Todo[] = [];
 let isDragging = false;
+let shadowRoot: ShadowRoot;
 let dragOffset = { x: 0, y: 0 };
 
 let hasMoved = false; // To distinguish click vs drag
@@ -31,6 +32,12 @@ const STORAGE_THEME_KEY = "bun_theme";
 const STORAGE_POS_KEY = "tytd_bubble_pos";
 
 async function init() {
+    // Use a closed shadow root so web pages cannot read the extension's DOM
+    // or detect the extension via queries like document.getElementById / querySelectorAll.
+    const shadowHost = document.createElement("div");
+    document.body.appendChild(shadowHost);
+    shadowRoot = shadowHost.attachShadow({ mode: "closed" });
+
     injectStyles();
     await createBubble();
     createMenu();
@@ -55,7 +62,8 @@ function injectStyles() {
     const link = document.createElement("link");
     link.rel = "stylesheet";
     link.href = chrome.runtime.getURL("content.css");
-    document.head.appendChild(link);
+    // Inject into shadow root, not document.head, to avoid leaking the extension ID.
+    shadowRoot.appendChild(link);
 }
 
 async function createBubble() {
@@ -98,7 +106,7 @@ async function createBubble() {
   `;
 
     bubbleContainer.appendChild(bubble);
-    document.body.appendChild(bubbleContainer);
+    shadowRoot.appendChild(bubbleContainer);
 
     // Drag logic
     bubble.addEventListener("mousedown", (e) => {
@@ -277,7 +285,7 @@ function createDialog() {
     dialog.appendChild(actions);
     dialogOverlay.appendChild(dialog);
 
-    document.body.appendChild(dialogOverlay);
+    shadowRoot.appendChild(dialogOverlay);
 
     // Dialog Logic
     const closeDialog = () => {
@@ -437,7 +445,7 @@ function applyThemeToScope(theme: string) {
     // We need to apply this to all existing scopes.
     // Currently we have bubble container and dialog overlay.
     // We can query them by class .tytd-scope
-    const scopes = document.querySelectorAll(".tytd-scope");
+    const scopes = shadowRoot.querySelectorAll(".tytd-scope");
     scopes.forEach(el => {
         el.classList.remove("tytd-theme-light", "tytd-theme-dark");
         if (theme === "light") el.classList.add("tytd-theme-light");
