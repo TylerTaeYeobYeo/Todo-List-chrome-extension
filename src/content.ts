@@ -11,6 +11,22 @@ interface Todo {
 
 type BubbleCorner = "top-left" | "top-right" | "bottom-left" | "bottom-right";
 
+const DEFAULT_BUBBLE_CORNER: BubbleCorner = "bottom-right";
+const BUBBLE_POSITIONS: Record<
+  BubbleCorner,
+  { top: string; bottom: string; left: string; right: string }
+> = {
+  "top-left": { top: "20px", bottom: "auto", left: "20px", right: "auto" },
+  "top-right": { top: "20px", bottom: "auto", left: "auto", right: "20px" },
+  "bottom-left": { top: "auto", bottom: "20px", left: "20px", right: "auto" },
+  "bottom-right": {
+    top: "auto",
+    bottom: "20px",
+    left: "auto",
+    right: "20px",
+  },
+};
+
 // State
 let todos: Todo[] = [];
 let isDragging = false;
@@ -19,7 +35,7 @@ let dragOffset = { x: 0, y: 0 };
 
 let hasMoved = false; // To distinguish click vs drag
 let draggedItemIndex: number | null = null;
-let autoHideTimer: any;
+let autoHideTimer: ReturnType<typeof setTimeout> | undefined;
 const AUTO_HIDE_DELAY = 5 * 1000;
 
 // DOM Elements
@@ -29,7 +45,7 @@ let menu: HTMLDivElement;
 let dialogOverlay: HTMLDivElement;
 let todoList: HTMLUListElement;
 let editingTodo: Todo | null = null;
-let bubbleCorner: BubbleCorner = "bottom-right";
+let bubbleCorner: BubbleCorner = DEFAULT_BUBBLE_CORNER;
 
 // Constants
 const STORAGE_KEY = "bun_todos";
@@ -53,14 +69,18 @@ async function init() {
 }
 
 async function loadTodos() {
-  const result = await chrome.storage.sync.get([STORAGE_KEY]);
-  todos = (result[STORAGE_KEY] as Todo[]) || [];
+  todos = await getStorageValue<Todo[]>(STORAGE_KEY, []);
   renderTodos();
 }
 
 async function saveTodos() {
   await chrome.storage.sync.set({ [STORAGE_KEY]: todos });
   renderTodos();
+}
+
+async function getStorageValue<T>(key: string, fallback: T): Promise<T> {
+  const result = await chrome.storage.sync.get([key]);
+  return (result[key] as T | undefined) ?? fallback;
 }
 
 function injectStyles() {
@@ -75,8 +95,7 @@ async function createBubble() {
   bubbleContainer.classList.add("tytd-scope");
 
   // Load the saved corner. Older pixel-based positions fall back to bottom-right.
-  const result = await chrome.storage.sync.get([STORAGE_POS_KEY]);
-  const savedPos = result[STORAGE_POS_KEY];
+  const savedPos = await getStorageValue<unknown>(STORAGE_POS_KEY, null);
 
   if (savedPos) {
     try {
@@ -84,7 +103,7 @@ async function createBubble() {
         typeof savedPos === "string" ? JSON.parse(savedPos) : savedPos;
       if (isBubbleCorner(pos.corner)) bubbleCorner = pos.corner;
     } catch (e) {
-      bubbleCorner = "bottom-right";
+      bubbleCorner = DEFAULT_BUBBLE_CORNER;
     }
   }
 
@@ -104,7 +123,8 @@ async function createBubble() {
   shadowRoot.appendChild(bubbleContainer);
 
   // Drag logic
-  bubble.addEventListener("mousedown", (e) => {
+  bubble.addEventListener("pointerdown", (e) => {
+    e.preventDefault();
     isDragging = true;
     hasMoved = false;
     const rect = bubbleContainer.getBoundingClientRect();
@@ -113,7 +133,7 @@ async function createBubble() {
     bubble.style.cursor = "grabbing";
   });
 
-  document.addEventListener("mousemove", (e) => {
+  window.addEventListener("pointermove", (e) => {
     if (isDragging) {
       hasMoved = true;
       e.preventDefault();
@@ -144,13 +164,16 @@ async function createBubble() {
     }
   });
 
-  document.addEventListener("mouseup", () => {
+  const finishDrag = () => {
     if (isDragging) {
       isDragging = false;
       bubble.style.cursor = "grab";
       pinToNearestCorner();
     }
-  });
+  };
+
+  window.addEventListener("pointerup", finishDrag);
+  window.addEventListener("pointercancel", finishDrag);
 }
 
 function createMenu() {
@@ -441,21 +464,7 @@ function isBubbleCorner(value: unknown): value is BubbleCorner {
 function applyCornerPosition() {
   if (!bubbleContainer) return;
 
-  const positions: Record<
-    BubbleCorner,
-    { top: string; bottom: string; left: string; right: string }
-  > = {
-    "top-left": { top: "20px", bottom: "auto", left: "20px", right: "auto" },
-    "top-right": { top: "20px", bottom: "auto", left: "auto", right: "20px" },
-    "bottom-left": { top: "auto", bottom: "20px", left: "20px", right: "auto" },
-    "bottom-right": {
-      top: "auto",
-      bottom: "20px",
-      left: "auto",
-      right: "20px",
-    },
-  };
-  const position = positions[bubbleCorner];
+  const position = BUBBLE_POSITIONS[bubbleCorner];
   bubbleContainer.style.top = position.top;
   bubbleContainer.style.bottom = position.bottom;
   bubbleContainer.style.left = position.left;
@@ -469,8 +478,7 @@ function updateBubblePosition() {
 }
 
 async function applySavedTheme() {
-  const result = await chrome.storage.sync.get([STORAGE_THEME_KEY]);
-  const theme = (result[STORAGE_THEME_KEY] as string) || "system";
+  const theme = await getStorageValue(STORAGE_THEME_KEY, "system");
   applyThemeToScope(theme);
 }
 
@@ -557,7 +565,7 @@ function renderTodos() {
       li.classList.remove("dragging");
       draggedItemIndex = null;
       // Remove all drag-over classes
-      document.querySelectorAll(".tytd-todo-item").forEach((item) => {
+      todoList.querySelectorAll(".tytd-todo-item").forEach((item) => {
         item.classList.remove("drag-over-top");
         item.classList.remove("drag-over-bottom");
       });
