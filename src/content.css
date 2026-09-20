@@ -38,6 +38,8 @@
 
 #tytd-bubble-container.tytd-pinning {
     transition: top 0.3s cubic-bezier(0.25, 1, 0.5, 1),
+        right 0.3s cubic-bezier(0.25, 1, 0.5, 1),
+        bottom 0.3s cubic-bezier(0.25, 1, 0.5, 1),
         left 0.3s cubic-bezier(0.25, 1, 0.5, 1),
         opacity 0.5s ease-in-out;
 }

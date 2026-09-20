@@ -9,6 +9,8 @@ interface Todo {
   completedAt?: string;
 }
 
+type BubbleCorner = "top-left" | "top-right" | "bottom-left" | "bottom-right";
+
 // State
 let todos: Todo[] = [];
 let isDragging = false;
@@ -27,6 +29,7 @@ let menu: HTMLDivElement;
 let dialogOverlay: HTMLDivElement;
 let todoList: HTMLUListElement;
 let editingTodo: Todo | null = null;
+let bubbleCorner: BubbleCorner = "bottom-right";
 
 // Constants
 const STORAGE_KEY = "bun_todos";
@@ -71,30 +74,21 @@ async function createBubble() {
   bubbleContainer.id = "tytd-bubble-container";
   bubbleContainer.classList.add("tytd-scope");
 
-  // Load saved position
+  // Load the saved corner. Older pixel-based positions fall back to bottom-right.
   const result = await chrome.storage.sync.get([STORAGE_POS_KEY]);
   const savedPos = result[STORAGE_POS_KEY];
 
   if (savedPos) {
     try {
-      // savedPos is already an object if coming from storage.sync,
-      // but we should check type or parse if we stored as string.
-      // In pinToNearestCorner we will store as object.
       const pos =
         typeof savedPos === "string" ? JSON.parse(savedPos) : savedPos;
-
-      bubbleContainer.style.top = `${pos.top}px`;
-      bubbleContainer.style.left = `${pos.left}px`;
-      bubbleContainer.style.bottom = "auto";
-      bubbleContainer.style.right = "auto";
+      if (isBubbleCorner(pos.corner)) bubbleCorner = pos.corner;
     } catch (e) {
-      bubbleContainer.style.bottom = "20px";
-      bubbleContainer.style.right = "20px";
+      bubbleCorner = "bottom-right";
     }
-  } else {
-    bubbleContainer.style.bottom = "20px";
-    bubbleContainer.style.right = "20px";
   }
+
+  applyCornerPosition();
 
   bubble = document.createElement("div");
   bubble.className = "tytd-bubble";
@@ -373,7 +367,7 @@ function setupListeners() {
   });
 
   window.addEventListener("resize", () => {
-    pinToNearestCorner();
+    applyCornerPosition();
     updateMenuPosition();
   });
 
@@ -391,7 +385,6 @@ function pinToNearestCorner() {
   const viewportWidth = window.innerWidth;
   const viewportHeight = window.innerHeight;
   const rect = bubbleContainer.getBoundingClientRect();
-  const margin = 20;
 
   const bubbleMidX = rect.left + rect.width / 2;
   const bubbleMidY = rect.top + rect.height / 2;
@@ -399,31 +392,26 @@ function pinToNearestCorner() {
   const isLeft = bubbleMidX < viewportWidth / 2;
   const isTop = bubbleMidY < viewportHeight / 2;
 
-  let targetLeft = isLeft ? margin : viewportWidth - rect.width - margin;
-  let targetTop = isTop ? margin : viewportHeight - rect.height - margin;
+  bubbleCorner =
+    `${isTop ? "top" : "bottom"}-${isLeft ? "left" : "right"}` as BubbleCorner;
 
   // Apply smooth pinning
   bubbleContainer.classList.add("tytd-pinning");
   menu.classList.add("tytd-pinning");
-  bubbleContainer.style.top = `${targetTop}px`;
-  bubbleContainer.style.left = `${targetLeft}px`;
-  bubbleContainer.style.bottom = "auto";
-  bubbleContainer.style.right = "auto";
+  applyCornerPosition();
+  const targetRect = bubbleContainer.getBoundingClientRect();
 
   // Update menu position based on the NEW container target
   // We pass the destination rect so the menu calculates its safety bounds for the corner.
   updateMenuPosition({
-    top: targetTop,
-    left: targetLeft,
-    width: rect.width,
-    height: rect.height,
+    top: targetRect.top,
+    left: targetRect.left,
+    width: targetRect.width,
+    height: targetRect.height,
   });
 
   // Save position
-  const posData = {
-    top: targetTop,
-    left: targetLeft,
-  };
+  const posData = { corner: bubbleCorner };
 
   // Use chrome.storage.sync instead of localStorage
   // We catch errors to handle quota exceeded or other storage issues
@@ -439,6 +427,39 @@ function pinToNearestCorner() {
     bubbleContainer.classList.remove("tytd-pinning");
     menu.classList.remove("tytd-pinning");
   }, 300);
+}
+
+function isBubbleCorner(value: unknown): value is BubbleCorner {
+  return (
+    value === "top-left" ||
+    value === "top-right" ||
+    value === "bottom-left" ||
+    value === "bottom-right"
+  );
+}
+
+function applyCornerPosition() {
+  if (!bubbleContainer) return;
+
+  const positions: Record<
+    BubbleCorner,
+    { top: string; bottom: string; left: string; right: string }
+  > = {
+    "top-left": { top: "20px", bottom: "auto", left: "20px", right: "auto" },
+    "top-right": { top: "20px", bottom: "auto", left: "auto", right: "20px" },
+    "bottom-left": { top: "auto", bottom: "20px", left: "20px", right: "auto" },
+    "bottom-right": {
+      top: "auto",
+      bottom: "20px",
+      left: "auto",
+      right: "20px",
+    },
+  };
+  const position = positions[bubbleCorner];
+  bubbleContainer.style.top = position.top;
+  bubbleContainer.style.bottom = position.bottom;
+  bubbleContainer.style.left = position.left;
+  bubbleContainer.style.right = position.right;
 }
 
 function updateBubblePosition() {
