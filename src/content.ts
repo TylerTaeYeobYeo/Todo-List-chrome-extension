@@ -1,3 +1,5 @@
+// @ts-ignore - Bun does not yet support CSS imports in content scripts, so we use a workaround to import the CSS as text.
+import contentCss from "./content.css" with { type: "text" };
 console.log("Bun Bubble Content Script Loaded");
 
 interface Todo {
@@ -59,11 +61,9 @@ async function saveTodos() {
 }
 
 function injectStyles() {
-  const link = document.createElement("link");
-  link.rel = "stylesheet";
-  link.href = chrome.runtime.getURL("content.css");
-  // Inject into shadow root, not document.head, to avoid leaking the extension ID.
-  shadowRoot.appendChild(link);
+  const style = document.createElement("style");
+  style.textContent = contentCss;
+  shadowRoot.appendChild(style);
 }
 
 async function createBubble() {
