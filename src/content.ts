@@ -1,60 +1,41 @@
-// @ts-ignore - Bun does not yet support CSS imports in content scripts, so we use a workaround to import the CSS as text.
+// @ts-ignore - Bun loads the stylesheet as text for Shadow DOM injection.
 import contentCss from "./content.css" with { type: "text" };
-console.log("Bun Bubble Content Script Loaded");
+import {
+    applyCornerPosition,
+    updateMenuPosition as calculateMenuPosition,
+    DEFAULT_BUBBLE_CORNER,
+    getNearestCorner,
+    isBubbleCorner,
+} from "./content/positioning";
+import {
+    getStorageValue,
+    loadTodos as loadStoredTodos,
+    saveTodos as persistTodos,
+    saveBubbleCorner,
+    STORAGE_KEYS,
+} from "./content/storage";
+import { renderTodos as renderTodoList } from "./content/todos";
+import type { Todo } from "./content/types";
 
-interface Todo {
-  id: string;
-  text: string;
-  completed: boolean;
-  completedAt?: string;
-}
+const AUTO_HIDE_DELAY = 5_000;
 
-type BubbleCorner = "top-left" | "top-right" | "bottom-left" | "bottom-right";
-
-const DEFAULT_BUBBLE_CORNER: BubbleCorner = "bottom-right";
-const BUBBLE_POSITIONS: Record<
-  BubbleCorner,
-  { top: string; bottom: string; left: string; right: string }
-> = {
-  "top-left": { top: "20px", bottom: "auto", left: "20px", right: "auto" },
-  "top-right": { top: "20px", bottom: "auto", left: "auto", right: "20px" },
-  "bottom-left": { top: "auto", bottom: "20px", left: "20px", right: "auto" },
-  "bottom-right": {
-    top: "auto",
-    bottom: "20px",
-    left: "auto",
-    right: "20px",
-  },
-};
-
-// State
 let todos: Todo[] = [];
 let isDragging = false;
-let shadowRoot: ShadowRoot;
-let dragOffset = { x: 0, y: 0 };
-
-let hasMoved = false; // To distinguish click vs drag
+let hasMoved = false;
 let draggedItemIndex: number | null = null;
 let autoHideTimer: ReturnType<typeof setTimeout> | undefined;
-const AUTO_HIDE_DELAY = 5 * 1000;
+let editingTodo: Todo | null = null;
+let bubbleCorner = DEFAULT_BUBBLE_CORNER;
 
-// DOM Elements
+let shadowRoot: ShadowRoot;
+let dragOffset = { x: 0, y: 0 };
 let bubbleContainer: HTMLDivElement;
 let bubble: HTMLDivElement;
 let menu: HTMLDivElement;
 let dialogOverlay: HTMLDivElement;
 let todoList: HTMLUListElement;
-let editingTodo: Todo | null = null;
-let bubbleCorner: BubbleCorner = DEFAULT_BUBBLE_CORNER;
 
-// Constants
-const STORAGE_KEY = "bun_todos";
-const STORAGE_THEME_KEY = "bun_theme";
-const STORAGE_POS_KEY = "tytd_bubble_pos";
-
-async function init() {
-  // Use a closed shadow root so web pages cannot read the extension's DOM
-  // or detect the extension via queries like document.getElementById / querySelectorAll.
+async function init(): Promise<void> {
   const shadowHost = document.createElement("div");
   document.body.appendChild(shadowHost);
   shadowRoot = shadowHost.attachShadow({ mode: "closed" });
@@ -68,115 +49,87 @@ async function init() {
   await loadTodos();
 }
 
-async function loadTodos() {
-  todos = await getStorageValue<Todo[]>(STORAGE_KEY, []);
-  renderTodos();
-}
-
-async function saveTodos() {
-  await chrome.storage.sync.set({ [STORAGE_KEY]: todos });
-  renderTodos();
-}
-
-async function getStorageValue<T>(key: string, fallback: T): Promise<T> {
-  const result = await chrome.storage.sync.get([key]);
-  return (result[key] as T | undefined) ?? fallback;
-}
-
-function injectStyles() {
+function injectStyles(): void {
   const style = document.createElement("style");
   style.textContent = contentCss;
   shadowRoot.appendChild(style);
 }
 
-async function createBubble() {
+async function createBubble(): Promise<void> {
   bubbleContainer = document.createElement("div");
   bubbleContainer.id = "tytd-bubble-container";
-  bubbleContainer.classList.add("tytd-scope");
+  bubbleContainer.className = "tytd-scope";
 
-  // Load the saved corner. Older pixel-based positions fall back to bottom-right.
-  const savedPos = await getStorageValue<unknown>(STORAGE_POS_KEY, null);
-
-  if (savedPos) {
+  const savedPosition = await getStorageValue<unknown>(
+    STORAGE_KEYS.bubblePosition,
+    null,
+  );
+  if (savedPosition) {
     try {
-      const pos =
-        typeof savedPos === "string" ? JSON.parse(savedPos) : savedPos;
-      if (isBubbleCorner(pos.corner)) bubbleCorner = pos.corner;
-    } catch (e) {
+      const position =
+        typeof savedPosition === "string"
+          ? JSON.parse(savedPosition)
+          : savedPosition;
+      if (isBubbleCorner(position.corner)) bubbleCorner = position.corner;
+    } catch {
       bubbleCorner = DEFAULT_BUBBLE_CORNER;
     }
   }
 
-  applyCornerPosition();
-
+  applyCornerPosition(bubbleContainer, bubbleCorner);
   bubble = document.createElement("div");
   bubble.className = "tytd-bubble";
   bubble.title = "Toggle Tasks";
-  // Lightning bolt SVG
-  bubble.innerHTML = `
-    <svg class="tytd-bubble-icon" viewBox="0 0 24 24">
-      <path d="M7 2v11h3v9l7-12h-4l4-8z"/>
-    </svg>
-  `;
-
+  bubble.innerHTML = `<svg class="tytd-bubble-icon" viewBox="0 0 24 24"><path d="M7 2v11h3v9l7-12h-4l4-8z"/></svg>`;
   bubbleContainer.appendChild(bubble);
   shadowRoot.appendChild(bubbleContainer);
+  setupBubbleDrag();
+}
 
-  // Drag logic
-  bubble.addEventListener("pointerdown", (e) => {
-    e.preventDefault();
+function setupBubbleDrag(): void {
+  bubble.addEventListener("pointerdown", (event) => {
+    event.preventDefault();
     isDragging = true;
     hasMoved = false;
     const rect = bubbleContainer.getBoundingClientRect();
-    dragOffset.x = e.clientX - rect.left;
-    dragOffset.y = e.clientY - rect.top;
+    dragOffset = { x: event.clientX - rect.left, y: event.clientY - rect.top };
     bubble.style.cursor = "grabbing";
   });
 
-  window.addEventListener("pointermove", (e) => {
-    if (isDragging) {
-      hasMoved = true;
-      e.preventDefault();
+  window.addEventListener("pointermove", (event) => {
+    if (!isDragging) return;
+    hasMoved = true;
+    event.preventDefault();
 
-      const viewportWidth = window.innerWidth;
-      const viewportHeight = window.innerHeight;
-      const rect = bubbleContainer.getBoundingClientRect();
+    const rect = bubbleContainer.getBoundingClientRect();
+    const left = Math.min(
+      Math.max(event.clientX - dragOffset.x, 0),
+      window.innerWidth - rect.width,
+    );
+    const top = Math.min(
+      Math.max(event.clientY - dragOffset.y, 0),
+      window.innerHeight - rect.height,
+    );
 
-      let newLeft = e.clientX - dragOffset.x;
-      let newTop = e.clientY - dragOffset.y;
-
-      // Clamp horizontal
-      if (newLeft < 0) newLeft = 0;
-      if (newLeft + rect.width > viewportWidth)
-        newLeft = viewportWidth - rect.width;
-
-      // Clamp vertical
-      if (newTop < 0) newTop = 0;
-      if (newTop + rect.height > viewportHeight)
-        newTop = viewportHeight - rect.height;
-
-      bubbleContainer.style.bottom = "auto";
-      bubbleContainer.style.right = "auto";
-      bubbleContainer.style.top = `${newTop}px`;
-      bubbleContainer.style.left = `${newLeft}px`;
-
-      updateMenuPosition();
-    }
+    bubbleContainer.style.top = `${top}px`;
+    bubbleContainer.style.left = `${left}px`;
+    bubbleContainer.style.bottom = "auto";
+    bubbleContainer.style.right = "auto";
+    updateMenuPosition();
   });
 
-  const finishDrag = () => {
-    if (isDragging) {
-      isDragging = false;
-      bubble.style.cursor = "grab";
-      pinToNearestCorner();
-    }
+  const finishDrag = (): void => {
+    if (!isDragging) return;
+    isDragging = false;
+    bubble.style.cursor = "grab";
+    pinToNearestCorner();
   };
 
   window.addEventListener("pointerup", finishDrag);
   window.addEventListener("pointercancel", finishDrag);
 }
 
-function createMenu() {
+function createMenu(): void {
   menu = document.createElement("div");
   menu.className = "tytd-menu tytd-scope";
 
@@ -190,211 +143,106 @@ function createMenu() {
   const addButton = document.createElement("button");
   addButton.className = "tytd-add-btn";
   addButton.title = "Add New Task";
-  addButton.innerHTML = `
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <line x1="12" y1="5" x2="12" y2="19"></line>
-      <line x1="5" y1="12" x2="19" y2="12"></line>
-    </svg>
-    Add New Task
-  `;
+  addButton.innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>Add New Task`;
   addButton.addEventListener("click", () => {
     showDialog();
     toggleMenu(false);
   });
 
-  menu.appendChild(header);
-  menu.appendChild(todoList);
-  menu.appendChild(addButton);
-
-  if (bubbleContainer) {
-    bubbleContainer.appendChild(menu);
-  }
+  menu.append(header, todoList, addButton);
+  bubbleContainer.appendChild(menu);
 }
 
 function updateMenuPosition(
   targetRect?:
-    | { top: number; left: number; width: number; height: number }
-    | DOMRect,
-) {
-  if (!menu.classList.contains("visible") || !bubbleContainer) return;
-
-  const containerRect = targetRect || bubbleContainer.getBoundingClientRect();
-  const menuRect = menu.getBoundingClientRect();
-  const viewportWidth = window.innerWidth;
-  const viewportHeight = window.innerHeight;
-  const gap = 20;
-  const screenPadding = 20;
-
-  // Use offsetDimensions to avoid transform skewing from animations
-  const menuHeight = menu.offsetHeight || menuRect.height || 300;
-  const menuWidth = menu.offsetWidth || menuRect.width || 250;
-
-  // Vertical Positioning
-  const spaceAbove = containerRect.top;
-  const spaceBelow =
-    viewportHeight - (containerRect.top + containerRect.height);
-
-  let relativeTop = 0;
-
-  // Decide if above or below based on space
-  if (spaceAbove >= menuHeight + gap) {
-    relativeTop = -menuHeight - gap;
-  } else if (spaceBelow >= menuHeight + gap) {
-    relativeTop = containerRect.height + gap;
-  } else {
-    // Fallback: use side with more space
-    if (spaceAbove > spaceBelow) {
-      relativeTop = -menuHeight - gap;
-      menu.style.maxHeight = `${spaceAbove - gap * 2}px`;
-    } else {
-      relativeTop = containerRect.height + gap;
-      menu.style.maxHeight = `${spaceBelow - gap * 2}px`;
-    }
-  }
-
-  // Horizontal Positioning (Relative to container)
-  // Align center with container (bubble)
-  let relativeLeft = containerRect.width / 2 - menuWidth / 2;
-
-  // Global clamping check (to ensure it doesn't go off-screen)
-  const absoluteLeft = containerRect.left + relativeLeft;
-  if (absoluteLeft < screenPadding) {
-    relativeLeft = screenPadding - containerRect.left;
-  } else if (absoluteLeft + menuWidth > viewportWidth - screenPadding) {
-    relativeLeft =
-      viewportWidth - screenPadding - menuWidth - containerRect.left;
-  }
-
-  const absoluteTop = containerRect.top + relativeTop;
-  if (absoluteTop < screenPadding) {
-    relativeTop = screenPadding - containerRect.top;
-  } else if (absoluteTop + menuHeight > viewportHeight - screenPadding) {
-    relativeTop =
-      viewportHeight - screenPadding - menuHeight - containerRect.top;
-  }
-
-  menu.style.top = `${relativeTop}px`;
-  menu.style.left = `${relativeLeft}px`;
-  menu.style.bottom = "auto";
-  menu.style.right = "auto";
+    | DOMRect
+    | { top: number; left: number; width: number; height: number },
+): void {
+  calculateMenuPosition(menu, bubbleContainer, targetRect);
 }
 
-function createDialog() {
+function createDialog(): void {
   dialogOverlay = document.createElement("div");
   dialogOverlay.className = "tytd-dialog-overlay tytd-scope";
 
   const dialog = document.createElement("div");
   dialog.className = "tytd-dialog";
-
   const title = document.createElement("h3");
   title.textContent = "Add New Task";
-
   const input = document.createElement("textarea");
   input.className = "tytd-input";
-  // input.type = "text"; // Textarea does not have type attribute
   input.placeholder = "What needs to be done? (Shift+Enter for new line)";
 
   const actions = document.createElement("div");
   actions.className = "tytd-dialog-actions";
+  const cancelButton = document.createElement("button");
+  cancelButton.className = "tytd-btn tytd-btn-cancel";
+  cancelButton.textContent = "Cancel";
+  const addButton = document.createElement("button");
+  addButton.className = "tytd-btn tytd-btn-primary";
+  addButton.textContent = "Add";
 
-  const cancelBtn = document.createElement("button");
-  cancelBtn.className = "tytd-btn tytd-btn-cancel";
-  cancelBtn.textContent = "Cancel";
-
-  const addBtn = document.createElement("button");
-  addBtn.className = "tytd-btn tytd-btn-primary";
-  addBtn.textContent = "Add";
-
-  actions.appendChild(cancelBtn);
-  actions.appendChild(addBtn);
-  dialog.appendChild(title);
-  dialog.appendChild(input);
-  dialog.appendChild(actions);
+  actions.append(cancelButton, addButton);
+  dialog.append(title, input, actions);
   dialogOverlay.appendChild(dialog);
-
   shadowRoot.appendChild(dialogOverlay);
 
-  // Dialog Logic
-  const closeDialog = () => {
+  const closeDialog = (): void => {
+    editingTodo = null;
     dialogOverlay.classList.remove("visible");
     input.value = "";
   };
-
-  const submit = async () => {
+  const submit = async (): Promise<void> => {
     const text = input.value.trim();
-    if (text) {
-      if (editingTodo) {
-        editingTodo.text = text;
-      } else {
-        const newTodo: Todo = {
-          id: Date.now().toString(),
-          text: text,
-          completed: false,
-        };
-        todos.push(newTodo);
-      }
-      await saveTodos();
-      closeDialog();
+    if (!text) return;
+    if (editingTodo) {
+      editingTodo.text = text;
+    } else {
+      todos.push({ id: Date.now().toString(), text, completed: false });
     }
+    await saveTodos();
+    closeDialog();
   };
 
-  cancelBtn.addEventListener("click", closeDialog);
-  addBtn.addEventListener("click", submit);
-
-  input.addEventListener("keydown", (e) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault(); // Prevent newline in textarea
+  cancelButton.addEventListener("click", closeDialog);
+  addButton.addEventListener("click", submit);
+  input.addEventListener("keydown", (event) => {
+    if (event.key === "Enter" && !event.shiftKey) {
+      event.preventDefault();
       submit();
     }
-    if (e.key === "Escape") closeDialog();
+    if (event.key === "Escape") closeDialog();
   });
-
-  dialogOverlay.addEventListener("click", (e) => {
-    if (e.target === dialogOverlay) closeDialog();
+  dialogOverlay.addEventListener("click", (event) => {
+    if (event.target === dialogOverlay) closeDialog();
   });
 }
 
-function setupListeners() {
-  bubble.addEventListener("click", (e) => {
-    e.stopPropagation();
-    if (!hasMoved) {
-      toggleMenu();
-    }
+function setupListeners(): void {
+  bubble.addEventListener("click", (event) => {
+    event.stopPropagation();
+    if (!hasMoved) toggleMenu();
   });
+  menu.addEventListener("click", (event) => event.stopPropagation());
+  document.addEventListener("click", () => toggleMenu(false));
 
-  // Prevent clicks inside the menu from closing it via the document listener
-  menu.addEventListener("click", (e) => {
-    e.stopPropagation();
-  });
-
-  // Close menu when clicking outside
-  document.addEventListener("click", () => {
-    if (menu && menu.classList.contains("visible")) {
-      toggleMenu(false);
-    }
-  });
-
-  // Listen for storage changes from other tabs
   chrome.storage.onChanged.addListener((changes, area) => {
-    if (area === "sync") {
-      if (changes[STORAGE_KEY]) {
-        todos = (changes[STORAGE_KEY].newValue as Todo[]) || [];
-        renderTodos();
-      }
-      if (changes[STORAGE_THEME_KEY]) {
-        applyThemeToScope(
-          (changes[STORAGE_THEME_KEY].newValue as string) || "system",
-        );
-      }
+    if (area !== "sync") return;
+    if (changes[STORAGE_KEYS.todos]) {
+      todos = (changes[STORAGE_KEYS.todos].newValue as Todo[]) || [];
+      renderTodos();
+    }
+    if (changes[STORAGE_KEYS.theme]) {
+      applyThemeToScope(
+        (changes[STORAGE_KEYS.theme].newValue as string) || "system",
+      );
     }
   });
 
   window.addEventListener("resize", () => {
-    applyCornerPosition();
+    applyCornerPosition(bubbleContainer, bubbleCorner);
     updateMenuPosition();
   });
-
-  // Auto-hide listeners
   document.addEventListener("mousemove", resetAutoHideTimer);
   document.addEventListener("keydown", resetAutoHideTimer);
   document.addEventListener("click", resetAutoHideTimer);
@@ -402,320 +250,112 @@ function setupListeners() {
   resetAutoHideTimer();
 }
 
-function pinToNearestCorner() {
-  if (!bubbleContainer) return;
-
-  const viewportWidth = window.innerWidth;
-  const viewportHeight = window.innerHeight;
-  const rect = bubbleContainer.getBoundingClientRect();
-
-  const bubbleMidX = rect.left + rect.width / 2;
-  const bubbleMidY = rect.top + rect.height / 2;
-
-  const isLeft = bubbleMidX < viewportWidth / 2;
-  const isTop = bubbleMidY < viewportHeight / 2;
-
-  bubbleCorner =
-    `${isTop ? "top" : "bottom"}-${isLeft ? "left" : "right"}` as BubbleCorner;
-
-  // Apply smooth pinning
+function pinToNearestCorner(): void {
+  bubbleCorner = getNearestCorner(
+    bubbleContainer,
+    window.innerWidth,
+    window.innerHeight,
+  );
   bubbleContainer.classList.add("tytd-pinning");
   menu.classList.add("tytd-pinning");
-  applyCornerPosition();
+  applyCornerPosition(bubbleContainer, bubbleCorner);
   const targetRect = bubbleContainer.getBoundingClientRect();
+  updateMenuPosition(targetRect);
 
-  // Update menu position based on the NEW container target
-  // We pass the destination rect so the menu calculates its safety bounds for the corner.
-  updateMenuPosition({
-    top: targetRect.top,
-    left: targetRect.left,
-    width: targetRect.width,
-    height: targetRect.height,
-  });
-
-  // Save position
-  const posData = { corner: bubbleCorner };
-
-  // Use chrome.storage.sync instead of localStorage
-  // We catch errors to handle quota exceeded or other storage issues
-  // Also check if runtime is valid to avoid "Extension context invalidated"
   if (chrome.runtime?.id) {
-    chrome.storage.sync.set({ [STORAGE_POS_KEY]: posData }).catch((err) => {
-      console.warn("Failed to save bubble position:", err);
+    saveBubbleCorner(bubbleCorner).catch((error) => {
+      console.warn("Failed to save bubble position:", error);
     });
   }
-
-  // Clean up transition class after it finishes
-  setTimeout(() => {
+  window.setTimeout(() => {
     bubbleContainer.classList.remove("tytd-pinning");
     menu.classList.remove("tytd-pinning");
   }, 300);
 }
 
-function isBubbleCorner(value: unknown): value is BubbleCorner {
-  return (
-    value === "top-left" ||
-    value === "top-right" ||
-    value === "bottom-left" ||
-    value === "bottom-right"
-  );
+async function loadTodos(): Promise<void> {
+  todos = await loadStoredTodos();
+  renderTodos();
 }
 
-function applyCornerPosition() {
-  if (!bubbleContainer) return;
-
-  const position = BUBBLE_POSITIONS[bubbleCorner];
-  bubbleContainer.style.top = position.top;
-  bubbleContainer.style.bottom = position.bottom;
-  bubbleContainer.style.left = position.left;
-  bubbleContainer.style.right = position.right;
+async function saveTodos(): Promise<void> {
+  await persistTodos(todos);
+  renderTodos();
 }
 
-function updateBubblePosition() {
-  // Redundant now that pinning handles it on resize,
-  // but kept as a simple safety clamp if called manually.
-  pinToNearestCorner();
+function renderTodos(): void {
+  renderTodoList({
+    todoList,
+    getTodos: () => todos,
+    setTodos: (nextTodos) => {
+      todos = nextTodos;
+    },
+    getDraggedIndex: () => draggedItemIndex,
+    setDraggedIndex: (index) => {
+      draggedItemIndex = index;
+    },
+    saveTodos,
+    showDialog,
+    toggleMenu,
+    updateMenuPosition: () => updateMenuPosition(),
+    updateBubbleIcon,
+  });
 }
 
-async function applySavedTheme() {
-  const theme = await getStorageValue(STORAGE_THEME_KEY, "system");
+async function applySavedTheme(): Promise<void> {
+  const theme = await getStorageValue(STORAGE_KEYS.theme, "system");
   applyThemeToScope(theme);
 }
 
-function applyThemeToScope(theme: string) {
-  // We need to apply this to all existing scopes.
-  // Currently we have bubble container and dialog overlay.
-  // We can query them by class .tytd-scope
-  const scopes = shadowRoot.querySelectorAll(".tytd-scope");
-  scopes.forEach((el) => {
-    el.classList.remove("tytd-theme-light", "tytd-theme-dark");
-    if (theme === "light") el.classList.add("tytd-theme-light");
-    if (theme === "dark") el.classList.add("tytd-theme-dark");
+function applyThemeToScope(theme: string): void {
+  shadowRoot.querySelectorAll(".tytd-scope").forEach((scope) => {
+    scope.classList.remove("tytd-theme-light", "tytd-theme-dark");
+    if (theme === "light") scope.classList.add("tytd-theme-light");
+    if (theme === "dark") scope.classList.add("tytd-theme-dark");
   });
 }
 
-function toggleMenu(force?: boolean) {
-  const isVisible = menu.classList.contains("visible");
-  const shouldBeVisible = force !== undefined ? force : !isVisible;
-
-  if (shouldBeVisible) {
-    menu.classList.add("visible");
-    // Reset height limits before measuring
-    menu.style.maxHeight = "";
-
-    // Immediate update (might be slightly off due to animation scale)
-    updateMenuPosition();
-
-    // Update again after next paint to ensure correct dimensions are caught
-    requestAnimationFrame(() => {
-      updateMenuPosition();
-    });
-  } else {
+function toggleMenu(force?: boolean): void {
+  const shouldShow = force ?? !menu.classList.contains("visible");
+  if (!shouldShow) {
     menu.classList.remove("visible");
-  }
-}
-
-function showDialog(todo?: Todo) {
-  editingTodo = todo || null;
-  dialogOverlay.classList.add("visible");
-  const title = dialogOverlay.querySelector("h3");
-
-  const input = dialogOverlay.querySelector("textarea") as HTMLTextAreaElement;
-  const submitBtn = dialogOverlay.querySelector(".tytd-btn-primary");
-
-  if (title) title.textContent = editingTodo ? "Edit Task" : "Add New Task";
-  if (input) {
-    input.value = editingTodo ? editingTodo.text : "";
-    input.focus();
-  }
-  if (submitBtn) submitBtn.textContent = editingTodo ? "Save" : "Add";
-}
-
-function renderTodos() {
-  if (!todoList) return;
-  todoList.innerHTML = "";
-
-  const activeTodos = todos.filter((t) => !t.completed);
-  updateBubbleIcon(activeTodos.length);
-
-  if (activeTodos.length === 0) {
-    const empty = document.createElement("li");
-    empty.className = "tytd-todo-item";
-    empty.textContent = "No tasks yet!";
-    empty.style.color = "#999";
-    empty.style.justifyContent = "center";
-    todoList.appendChild(empty);
     return;
   }
-
-  activeTodos.forEach((todo, index) => {
-    const li = document.createElement("li");
-    li.className = "tytd-todo-item";
-
-    // Drag and Drop
-    li.draggable = true;
-
-    li.addEventListener("dragstart", (e) => {
-      draggedItemIndex = index;
-      li.classList.add("dragging");
-      // e.dataTransfer!.effectAllowed = 'move';
-    });
-
-    li.addEventListener("dragend", () => {
-      li.classList.remove("dragging");
-      draggedItemIndex = null;
-      // Remove all drag-over classes
-      todoList.querySelectorAll(".tytd-todo-item").forEach((item) => {
-        item.classList.remove("drag-over-top");
-        item.classList.remove("drag-over-bottom");
-      });
-    });
-
-    li.addEventListener("dragover", (e) => {
-      e.preventDefault(); // Allow drop
-      if (draggedItemIndex === null || draggedItemIndex === index) return;
-
-      const rect = li.getBoundingClientRect();
-      const midpoint = rect.top + rect.height / 2;
-
-      li.classList.remove("drag-over-top", "drag-over-bottom");
-
-      if (e.clientY < midpoint) {
-        li.classList.add("drag-over-top");
-      } else {
-        li.classList.add("drag-over-bottom");
-      }
-    });
-
-    li.addEventListener("dragleave", () => {
-      li.classList.remove("drag-over-top", "drag-over-bottom");
-    });
-
-    li.addEventListener("drop", async (e) => {
-      e.preventDefault();
-      li.classList.remove("drag-over-top", "drag-over-bottom");
-
-      if (draggedItemIndex === null || draggedItemIndex === index) return;
-
-      const rect = li.getBoundingClientRect();
-      const midpoint = rect.top + rect.height / 2;
-      const dropAfter = e.clientY >= midpoint;
-
-      // Reorder activeTodos
-      const itemToMove = activeTodos[draggedItemIndex];
-
-      // Remove item
-      activeTodos.splice(draggedItemIndex, 1);
-
-      // Calculate insertion index
-      // If we removed an item before the target, the target index shifts down by 1.
-      let insertIndex = index;
-      if (draggedItemIndex < index) {
-        insertIndex--;
-      }
-
-      if (dropAfter) {
-        insertIndex++;
-      }
-
-      activeTodos.splice(insertIndex, 0, itemToMove);
-
-      // Reconstruct full todos list (active + completed)
-      const completedTodos = todos.filter((t) => t.completed);
-      todos = [...activeTodos, ...completedTodos];
-
-      await saveTodos();
-    });
-
-    const text = document.createElement("span");
-    text.className = "tytd-todo-text";
-    text.textContent = todo.text;
-    text.title = todo.text; // Add tooltip
-
-    const actionButtons = document.createElement("div");
-    actionButtons.style.display = "flex";
-    actionButtons.style.gap = "4px";
-
-    const doneBtn = document.createElement("button");
-    doneBtn.className = "tytd-done-btn";
-    doneBtn.title = "Mark as Done";
-    doneBtn.innerHTML = `
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <polyline points="20 6 9 17 4 12"></polyline>
-      </svg>
-    `;
-    doneBtn.addEventListener("click", async () => {
-      todo.completed = true;
-      todo.completedAt = new Date().toISOString();
-      await saveTodos();
-    });
-
-    const editBtn = document.createElement("button");
-    editBtn.className = "tytd-edit-btn";
-    editBtn.title = "Edit Task";
-    editBtn.innerHTML = `
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-      </svg>
-    `;
-    editBtn.addEventListener("click", () => {
-      showDialog(todo);
-      toggleMenu(false);
-    });
-
-    const deleteBtn = document.createElement("button");
-    deleteBtn.className = "tytd-delete-btn";
-    deleteBtn.title = "Delete Task";
-    deleteBtn.innerHTML = `
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <line x1="18" y1="6" x2="6" y2="18"></line>
-        <line x1="6" y1="6" x2="18" y2="18"></line>
-      </svg>
-    `;
-    deleteBtn.addEventListener("click", async () => {
-      todos = todos.filter((t) => t.id !== todo.id);
-      await saveTodos();
-    });
-
-    li.appendChild(text);
-    actionButtons.appendChild(doneBtn);
-    actionButtons.appendChild(editBtn);
-    actionButtons.appendChild(deleteBtn);
-    li.appendChild(actionButtons);
-    todoList.appendChild(li);
-  });
-
-  // Update position in case height changed
+  menu.classList.add("visible");
+  menu.style.maxHeight = "";
+  updateMenuPosition();
   requestAnimationFrame(() => updateMenuPosition());
 }
 
-init();
-
-function resetAutoHideTimer() {
-  clearTimeout(autoHideTimer);
-  if (bubbleContainer) {
-    bubbleContainer.classList.remove("tytd-hidden");
+function showDialog(todo?: Todo): void {
+  editingTodo = todo ?? null;
+  dialogOverlay.classList.add("visible");
+  const title = dialogOverlay.querySelector("h3");
+  const input = dialogOverlay.querySelector("textarea") as HTMLTextAreaElement;
+  const submitButton = dialogOverlay.querySelector(".tytd-btn-primary");
+  if (title) title.textContent = editingTodo ? "Edit Task" : "Add New Task";
+  if (input) {
+    input.value = editingTodo?.text ?? "";
+    input.focus();
   }
+  if (submitButton) submitButton.textContent = editingTodo ? "Save" : "Add";
+}
 
-  // Only set timer if menu is NOT visible
-  // Also check if dragging? Usually dragging implies mousemove, so timer resets.
+function resetAutoHideTimer(): void {
+  clearTimeout(autoHideTimer);
+  bubbleContainer?.classList.remove("tytd-hidden");
   if (menu && !menu.classList.contains("visible") && !isDragging) {
     autoHideTimer = setTimeout(() => {
-      if (bubbleContainer) {
-        bubbleContainer.classList.add("tytd-hidden");
-      }
+      bubbleContainer?.classList.add("tytd-hidden");
     }, AUTO_HIDE_DELAY);
   }
 }
 
-function updateBubbleIcon(count: number) {
+function updateBubbleIcon(count: number): void {
   if (!bubble) return;
-
-  // Always show lightning bolt, no count
-  bubble.innerHTML = `
-        <svg class="tytd-bubble-icon" viewBox="0 0 24 24"${count > 0 ? ` style="width: 20px;"` : ""}>
-          <path d="M7 2v11h3v9l7-12h-4l4-8z"/>
-        </svg>${count > 0 ? `<span style="font-size: 20px; line-height: 30px; color: white;">${count}</span>` : ""}
-    `;
+  bubble.innerHTML = `<svg class="tytd-bubble-icon" viewBox="0 0 24 24"${count > 0 ? ' style="width: 20px;"' : ""}><path d="M7 2v11h3v9l7-12h-4l4-8z"/></svg>${count > 0 ? `<span style="font-size: 20px; line-height: 30px; color: white;">${count}</span>` : ""}`;
 }
+
+init().catch((error) =>
+  console.error("Failed to initialize content script", error),
+);
